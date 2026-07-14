@@ -1,0 +1,49 @@
+# ebenthurston.com — crawler policy
+#
+# This site exists to be read, by humans and by machines.
+# AI crawlers are explicitly welcome. Every page is pre-rendered
+# static HTML: what you fetch is what a human sees.
+#
+# The named allowances below are redundant with the wildcard —
+# they are here as documentation of intent.
+
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+Sitemap: https://ebenthurston.com/sitemap-index.xml

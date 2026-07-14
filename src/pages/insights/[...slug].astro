@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('insights');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: iso(post.data.pubDate),
+  dateModified: iso(post.data.updatedDate ?? post.data.pubDate),
+  url: new URL(`/insights/${post.id}/`, Astro.site).href,
+  author: {
+    '@type': 'Person',
+    '@id': 'https://ebenthurston.com/#person',
+    name: 'Eben Thurston',
+    url: 'https://ebenthurston.com/',
+  },
+};
+---
+
+<Base title={`${post.data.title} — Eben Thurston`} description={post.data.description} ogType="article">
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} slot="head" />
+
+  <article>
+    <h1>{post.data.title}</h1>
+    <p class="meta">
+      By <a href="/">Eben Thurston</a> ·
+      <time datetime={iso(post.data.pubDate)}>
+        {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </time>
+      {post.data.updatedDate && (
+        <>
+          {' '}· Updated{' '}
+          <time datetime={iso(post.data.updatedDate)}>
+            {post.data.updatedDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
+        </>
+      )}
+    </p>
+    <Content />
+  </article>
+</Base>

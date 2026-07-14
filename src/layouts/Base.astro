@@ -1,0 +1,202 @@
+---
+/**
+ * Base layout — shared <head>, header, and footer.
+ * Identical pre-rendered HTML is served to every user agent.
+ */
+interface Props {
+  title: string;
+  description: string;
+  ogType?: string;
+}
+
+const { title, description, ogType = 'website' } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Eben Thurston — Insights"
+      href={new URL('rss.xml', Astro.site)}
+    />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Eben Thurston" />
+    <meta name="twitter:card" content="summary" />
+
+    <slot name="head" />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <nav aria-label="Primary">
+        <a href="/" class="wordmark">Eben Thurston</a>
+        <a href="/insights/">Insights</a>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        &copy; {new Date().getFullYear()} Eben Thurston &middot;
+        <a href="https://www.linkedin.com/in/ebenthurston">LinkedIn</a> &middot;
+        <a href="mailto:eben.thurston@gmail.com">Email</a>
+      </p>
+      <p class="colophon">
+        This site serves identical pre-rendered HTML to humans and AI crawlers.
+        No client-side rendering, no tracking, no cookies.
+        <a href="/insights/built-for-answer-engines/">How it works</a>.
+      </p>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --ink: #1c1e21;
+    --ink-soft: #55595f;
+    --paper: #fdfcfa;
+    --accent: #0f4c81;
+    --rule: #e4e1db;
+    --measure: 44rem;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      Helvetica, Arial, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  main,
+  .site-header nav,
+  .site-footer {
+    max-width: var(--measure);
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  .site-header {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .site-header nav {
+    display: flex;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding-block: 1rem;
+  }
+
+  .site-header a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-size: 0.95rem;
+  }
+
+  .site-header a:hover {
+    color: var(--accent);
+  }
+
+  .site-header .wordmark {
+    font-weight: 650;
+    color: var(--ink);
+    margin-right: auto;
+  }
+
+  main {
+    padding-block: 2.5rem 4rem;
+  }
+
+  h1 {
+    font-size: 2.1rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+    margin: 2.75rem 0 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    margin: 1.75rem 0 0.25rem;
+  }
+
+  a {
+    color: var(--accent);
+  }
+
+  ul {
+    padding-left: 1.2rem;
+  }
+
+  li {
+    margin-block: 0.35rem;
+  }
+
+  .lede {
+    font-size: 1.15rem;
+    color: var(--ink-soft);
+    max-width: 40rem;
+  }
+
+  .meta {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  dl.faq dt {
+    font-weight: 650;
+    margin-top: 1.5rem;
+  }
+
+  dl.faq dd {
+    margin: 0.35rem 0 0;
+  }
+
+  .site-footer {
+    border-top: 1px solid var(--rule);
+    padding-block: 1.5rem 2.5rem;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  .colophon {
+    font-size: 0.8rem;
+  }
+
+  article :is(h2) {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 2rem;
+  }
+</style>
