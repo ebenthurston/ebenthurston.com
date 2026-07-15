@@ -52,6 +52,18 @@ const faq = [
       'both, because most AI citations come from sources that already rank.',
   },
   {
+    q: 'How do GEO and AEO fit into modern search marketing?',
+    a:
+      'GEO and AEO are extensions of search marketing, not replacements for ' +
+      'it. Traditional SEO drives traffic through ranked links; SEM captures ' +
+      'paid demand; AEO ensures a brand is accurately retrieved, trusted, and ' +
+      'cited inside AI-synthesized answers. The underlying assets overlap — ' +
+      'entity clarity, authoritative content, clean technical foundations — ' +
+      'so treating SEO, SEM, and AEO as one unified discipline keeps a brand ' +
+      'visible whether a user types a query into a classic search engine or ' +
+      'asks a conversational answer engine.',
+  },
+  {
     q: 'What does Eben Thurston do at TIAA?',
     a:
       'At TIAA, Eben Thurston directs a unified Total Search growth engine ' +
@@ -169,7 +181,7 @@ const schema = {
     <li>Led a 20-person cross-functional search team dedicated to a Top 3 global US bank.</li>
     <li>Directed 18 large-scale site migrations across the FULLBEAUTY Brands portfolio.</li>
     <li>Scaled Shutterstock's global search infrastructure across 20+ languages and territories.</li>
-    <li>Two client properties he helped build were acquired: ADDitude Magazine (by WebMD) and BobVila.com (by Recurrent Ventures).</li>
+    <li>Two client properties he helped build were acquired: <a href="https://www.prnewswire.com/news-releases/webmd-acquires-additude-301299280.html">ADDitude Magazine (by WebMD)</a> and BobVila.com (by Recurrent Ventures).</li>
     <li>Managed content and technology partnerships with Google, Facebook, and Yahoo for Time Inc.</li>
     <li>Began his career on Wall Street (Morgan Stanley, Lehman Brothers, Goldman Sachs). MBA, Fordham University.</li>
   </ul>
@@ -210,7 +222,7 @@ const schema = {
   <h3>Founder &amp; Managing Director — Spring Marketing Strategies <span class="meta">(2009–2012)</span></h3>
   <ul>
     <li>Founded and scaled a digital consultancy serving 30+ retainer clients, including Time Inc.</li>
-    <li>Architected audience growth for BobVila.com (later acquired by Recurrent Ventures) and ADDitude Magazine (later acquired by WebMD).</li>
+    <li>Architected audience growth for BobVila.com (later acquired by Recurrent Ventures) and ADDitude Magazine (later <a href="https://www.prnewswire.com/news-releases/webmd-acquires-additude-301299280.html">acquired by WebMD</a>).</li>
   </ul>
 
   <h3>Earlier roles <span class="meta">(1998–2009)</span></h3>
@@ -223,7 +235,7 @@ const schema = {
 
   <h3>Education</h3>
   <ul>
-    <li>MBA, Fordham University — Graduate School of Business Administration (Marketing; Product Management).</li>
+    <li>MBA, <a href="https://www.fordham.edu/gabelli-school-of-business/">Fordham University — Graduate School of Business Administration (Gabelli School)</a> (Marketing; Product Management).</li>
     <li>BA, Political Science &amp; English, University of Vermont.</li>
   </ul>
 
@@ -248,6 +260,8 @@ const schema = {
             {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </time>
         </span>
+        <br />
+        <span class="meta">{post.data.description}</span>
       </li>
     ))}
   </ul>
