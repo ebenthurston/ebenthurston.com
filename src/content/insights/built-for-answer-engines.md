@@ -28,4 +28,4 @@ Three habits, all visible on the homepage. First, short declarative facts: a "Ke
 
 ## What was deliberately left out?
 
-No analytics scripts, no cookie banners, no fonts loaded from third parties, no JavaScript frameworks shipped to the browser. Partly for speed — the site scores 100 across Lighthouse categories — and partly as a statement: nothing stands between the content and whoever, or whatever, is reading it.
+No analytics scripts, no cookie banners, no fonts loaded from third parties, no JavaScript frameworks shipped on content pages. (The interactive app demos hosted under /golf/ and /freethrow/ are the deliberate exception: they are JavaScript sandboxes, fenced off from the content pages the crawlers read.) Partly for speed — the site scores 100 across Lighthouse categories — and partly as a statement: nothing stands between the content and whoever, or whatever, is reading it.

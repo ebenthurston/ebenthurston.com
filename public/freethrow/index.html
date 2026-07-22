@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store" />
+<title>FreeThrow — Shot Mechanics &amp; Make-% Sandbox</title>
+<style>
+  :root{
+    --bg:#120d09; --panel:#1c140d; --panel2:#241910; --line:#39281a;
+    --txt:#f3ece4; --muted:#a08a76; --accent:#ff8a3d; --accent2:#e06f24; --warn:#f0b429; --good:#39d98a; --bad:#f0556b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:.3px}
+  header .tag{color:var(--muted);font-size:12.5px}
+  header .look{margin-left:auto;display:flex;gap:8px;align-items:center}
+  header .swb{width:19px;height:19px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.15s}
+  header .swb:hover{transform:scale(1.1)}
+  header .swb.active{border-color:var(--txt);transform:scale(1.12)}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:17px}
+  .wrap{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 60px)}
+  @media (max-width:920px){.wrap{grid-template-columns:1fr}}
+  .controls{padding:18px;border-right:1px solid var(--line);overflow:auto}
+  .stage{padding:18px 22px;display:flex;flex-direction:column;gap:16px}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .preset{flex:1;min-width:64px;padding:9px 6px;border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);border-radius:9px;cursor:pointer;font-size:12.5px;text-align:center;transition:.15s}
+  .preset:hover{border-color:var(--accent2);color:var(--txt)}
+  .preset.active{background:var(--accent);color:#241006;border-color:var(--accent);font-weight:600}
+  .section-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:18px 0 12px;
+    display:flex;align-items:center;gap:8px}
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line)}
+  .ctrl{margin-bottom:15px}
+  .ctrl .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .ctrl label{font-size:13px;color:var(--txt)}
+  .ctrl .val{font-size:12.5px;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600}
+  .hint{font-size:11px;color:var(--muted);margin-top:3px}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:4px;background:var(--line);outline:none;margin:0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+    background:var(--accent);cursor:pointer;border:3px solid #120d09;box-shadow:0 0 0 1px var(--accent)}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid #120d09}
+  input[type=range]:disabled{opacity:.4;cursor:not-allowed}
+  input[type=number]{background:var(--panel);border:1px solid var(--line);color:var(--txt);
+    border-radius:8px;padding:8px 10px;font-size:13px;width:74px;outline:none}
+  input[type=number]:focus{border-color:var(--accent2)}
+  .optbtn{width:100%;margin-top:8px;padding:10px;background:rgba(255,138,61,.08);border:1px solid var(--accent2);
+    color:var(--accent);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+  .optbtn:hover{background:rgba(255,138,61,.16)}
+  .optbtn:disabled,button.reset:disabled{opacity:.45;cursor:wait}
+  #optStatus{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:8px;min-height:16px}
+  #optStatus b{color:var(--accent)}
+  details.grp{border:1px solid var(--line);border-radius:10px;margin:10px 0;background:var(--panel)}
+  details.grp summary{cursor:pointer;list-style:none;padding:10px 12px;display:flex;align-items:center;gap:9px}
+  details.grp summary::-webkit-details-marker{display:none}
+  details.grp summary::before{content:"▸";color:var(--muted);font-size:10px;flex:none}
+  details.grp[open] summary::before{content:"▾"}
+  details.grp .gt{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--txt)}
+  details.grp .gs{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;margin-left:auto;text-align:right}
+  details.grp .grp-body{padding:2px 12px 8px;border-top:1px solid var(--line)}
+  .cuecard{background:var(--panel);border:1px solid var(--accent2);border-radius:12px;padding:11px 13px;margin:2px 0 6px}
+  .cuecard .cue{display:flex;gap:9px;font-size:12.5px;line-height:1.45;margin:7px 0;color:var(--txt)}
+  .cuecard .cue .n{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  .cuecard .sub{font-size:11px;color:var(--muted);margin-top:9px;border-top:1px solid var(--line);padding-top:8px}
+  #calBadge{color:var(--good,#39d98a)}
+  .reset{width:100%;margin-top:6px;padding:9px;background:transparent;border:1px solid var(--line);
+    color:var(--muted);border-radius:8px;cursor:pointer;font-size:12.5px}
+  .reset:hover{color:var(--txt);border-color:var(--accent2)}
+  .cmp{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin:6px 0;cursor:pointer}
+  .cmp input{accent-color:var(--accent);width:15px;height:15px}
+  .foot{color:var(--muted);font-size:11.5px;line-height:1.5;margin-top:14px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media (max-width:620px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:25px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+  .stat .u{font-size:12px;color:var(--muted);font-weight:500}
+  .stat.hero .v{color:var(--accent)}
+  .views{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+  @media (max-width:760px){.views{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .card.wide{grid-column:1/-1}
+  .card .hd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;
+    border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .card canvas{display:block;width:100%}
+  .play{padding:6px 13px;border-radius:7px;border:1px solid var(--accent2);background:transparent;
+    color:var(--accent);cursor:pointer;font-size:12px;font-weight:600}
+  .play:hover{background:rgba(255,138,61,.12)}
+  .verdict{font-weight:600}
+  .foot b{color:var(--txt)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🏀</div>
+  <h1>FreeThrow <span class="tag">· shot mechanics &amp; make-% sandbox</span></h1>
+  <span class="look" id="themeBtns" title="Colour theme"></span>
+</header>
+
+<div class="wrap">
+  <!-- ── CONTROLS ───────────────────────────── -->
+  <div class="controls">
+    <!-- ── ① ② ③  the old-man-league flow ─────── -->
+    <div class="section-label">① About me</div>
+    <div id="meSliders"></div>
+    <div class="presets" id="handToggle"></div>
+    <div class="ctrl" style="margin-top:12px">
+      <div class="top"><label>My real free-throw %</label><span class="val" id="calBadge"></span></div>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <input type="number" id="realPct" min="5" max="99" value="70">
+        <button class="reset" id="calBtn" style="margin:0;flex:1">Calibrate to me</button>
+      </div>
+      <div class="hint">Matches the sim to how you actually shoot, so everything below is relative to <i>your</i> baseline.</div>
+    </div>
+
+    <div class="section-label">② Find my ideal</div>
+    <button class="optbtn" id="optBtn">★ Find my ideal mechanics</button>
+    <div class="hint" style="margin-top:6px">Keeps your body and consistency fixed, then searches the technique for your best simulated make %.</div>
+    <div id="optStatus"></div>
+
+    <div class="section-label">③ My cues — take these to the line</div>
+    <div class="cuecard" id="cueCard"></div>
+
+    <!-- ── the lab ─────────────────────────────── -->
+    <div class="section-label">Try a famous form</div>
+    <div class="presets" id="presets"></div>
+
+    <details class="grp">
+      <summary><span class="gt">Setup — how I stand</span><span class="gs" id="sumSetup"></span></summary>
+      <div class="grp-body" id="setupSliders"></div>
+    </details>
+
+    <details class="grp">
+      <summary><span class="gt">The grip — hands on the ball</span><span class="gs" id="sumGrip"></span></summary>
+      <div class="grp-body" id="gripSliders"></div>
+    </details>
+
+    <details class="grp">
+      <summary><span class="gt">The load — how I gather</span><span class="gs" id="sumLoad"></span></summary>
+      <div class="grp-body" id="loadSliders"></div>
+    </details>
+
+    <details class="grp">
+      <summary><span class="gt">The release — how I let it go</span><span class="gs" id="sumRel"></span></summary>
+      <div class="grp-body" id="relSliders"></div>
+    </details>
+
+    <details class="grp">
+      <summary><span class="gt">Advanced</span><span class="gs" id="sumAdv"></span></summary>
+      <div class="grp-body">
+        <label class="cmp"><input type="checkbox" id="autoaim" checked> Auto-aim: always shoot with exactly enough power to reach the rim</label>
+        <div id="advSliders"></div>
+      </div>
+    </details>
+
+    <button class="reset" id="reset">Reset to preset</button>
+
+    <div class="foot">
+      Court: rim at <b>10 ft</b> (3.05 m), rim &empty; <b>18 in</b>, ball &empty; <b>9.4 in</b>, release
+      ~<b>4.1 m</b> from rim. The dashed arc is your ideal shot; the <b>make %</b> is simulated —
+      ~600 shots scattered by your <b>consistency</b>. Treat every number as a hypothesis to test
+      at a real line.
+    </div>
+  </div>
+
+  <!-- ── STAGE ──────────────────────────────── -->
+  <div class="stage">
+    <div class="stats">
+      <div class="stat hero"><div class="k">Make %</div><div class="v"><span id="sMake">—</span><span class="u">%</span></div></div>
+      <div class="stat"><div class="k">Entry angle</div><div class="v"><span id="sEntry">—</span><span class="u">°</span></div></div>
+      <div class="stat"><div class="k">Release angle</div><div class="v"><span id="sAng">—</span><span class="u">°</span></div></div>
+      <div class="stat" title="Shot-to-shot release-angle spread driven by your consistency. Anchored to measured shooter data: ~3.2° proficient, ~5.4° non-proficient."><div class="k">Release SD</div><div class="v">±<span id="sAngSD">—</span><span class="u">°</span></div></div>
+      <div class="stat"><div class="k">Release speed</div><div class="v"><span id="sSpd">—</span><span class="u">m/s</span></div></div>
+    </div>
+
+    <div class="views">
+      <div class="card wide">
+        <div class="hd">
+          <span>Side view — shot trajectory</span>
+          <span class="right"><span class="verdict" id="verdict"></span> &nbsp; <button class="play" id="shoot">▶ Shoot</button></span>
+        </div>
+        <canvas id="scene" height="380"></canvas>
+      </div>
+      <div class="card wide">
+        <div class="hd">
+          <span>Behind the shooter — eyes to the rim</span>
+          <span class="right">drag to rotate · double-click to reset</span>
+        </div>
+        <canvas id="behind" height="420"></canvas>
+        <input type="range" id="timeline" min="0" max="1" step="0.001" value="1" style="margin-top:8px" title="Scrub the shot: gather → dip → set point → release → follow-through">
+        <div class="hint" style="display:flex;justify-content:space-between;margin-top:2px"><span>gather</span><span>set point</span><span>release</span><span>follow-through</span></div>
+      </div>
+      <div class="card">
+        <div class="hd"><span>Shooter's view — hands on the ball</span></div>
+        <canvas id="hands" height="300"></canvas>
+      </div>
+      <div class="card">
+        <div class="hd"><span>Rim's-eye view — shot dispersion</span></div>
+        <canvas id="rim" height="300"></canvas>
+      </div>
+      <div class="card wide">
+        <div class="hd"><span>Coaching read</span></div>
+        <canvas id="coach" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ───────────────── physics constants (SI) ─────────────────
+const G=9.81;
+const RIM_H=3.05, RIM_R=0.2286, RIM_D=0.4572;     // rim height, radius, diameter
+const BALL_R=0.1197, BALL_D=0.2394;               // basketball
+const RHO=1.225, CD=0.47, MASS=0.62;
+const AREA=Math.PI*BALL_R*BALL_R;
+const RELEASE_X=0.55;                              // shooter release x in world frame
+const DIST=4.10;                                  // release-to-rim-center horizontal
+const RIM_X=RELEASE_X+DIST;
+const CLEAN=RIM_R-BALL_R;                          // 0.109 m — dead-center swish radius
+const FLIGHT_START=0.42;                            // fraction of the clip spent on the body windup
+const OPT_OPEN=14;                                  // stance degrees that best aligns the shooting elbow (~11 o'clock for a righty)
+
+// setup → shooting-elbow alignment → lateral accuracy
+function alignInfo(s){
+  const dir=(s.hand==="L")?-1:1;                    // open direction depends on shooting hand
+  const shoulder=s.shoulderAng ?? s.stance ?? 0;    // shoulders aim the elbow at the rim
+  const hip=s.hipAng ?? shoulder;
+  // natural elbow flare comes from the stance; an active "tuck" muscles it back toward the rim line
+  const tuck=(s.elbowTuck??0)/100;
+  const naturalFlare=Math.abs(shoulder-OPT_OPEN);        // ° the stance throws the shooting elbow off line
+  const signedFlare=(shoulder-OPT_OPEN)*(1-tuck);        // residual after tucking (keeps the off-line direction)
+  const misalign=naturalFlare*(1-tuck);                  // effective elbow misalignment after the tuck
+  const quality=Math.max(0,Math.min(1,1-misalign/24));   // 1 = elbow on the rim line
+  const latMul=1+(1-quality)*2.0;                   // wider left/right scatter when the elbow is off line
+  const footM=(s.footAim||0)/100;                   // shooting foot off the rim-center line (m)
+  const latBias=signedFlare*0.0052*dir + footM*0.55;  // residual flare + off-square base both push off-line
+  // …but muscling the elbow in against a non-ideal stance is hard to repeat → a consistency cost
+  const tuckMul=1+tuck*naturalFlare*0.012;
+  const twist=Math.abs(shoulder-hip);              // hips & shoulders should stack
+  const twistMul=1+Math.max(0,twist-6)/26;          // a big torso twist is hard to repeat
+  const foot=s.footAng ?? hip;                      // toes default to following the hips
+  const fight=Math.abs(foot-hip);                   // feet fighting the hips torque the knees
+  const strainMul=1+Math.max(0,fight-10)/24;
+  // grip: aligned seams = same release feel every time; the last finger off the ball should
+  // push through its middle (sweet spot ≈ the index–middle gap, biased toward the middle finger)
+  const fp=s.fingerPos??55, seam=(s.seamAlign??70)/100;
+  const fpErr=Math.abs(fp-60)/60;
+  const gripMul=1+0.35*fpErr;                       // off-center last touch → wider lateral scatter…
+  const gripBias=(60-fp)*0.0012*dir;                // …and a systematic sidespin drift off the line (~3 in at the extreme)
+  return {dir,misalign,naturalFlare,tuck,quality,latMul:latMul*gripMul,latBias:latBias+gripBias,
+          twist,twistMul,fight,strainMul,tuckMul,fp,seam};
+}
+
+// ───────────────── parameters, bucketed by the shot's timeline ─────────────────
+const ME=[
+  {k:"height", label:"My height", min:175,max:218,step:1,unit:" cm", hint:"Taller → higher release, flatter required arc"},
+  {k:"weight", label:"My weight", min:120,max:320,step:1,unit:" lb", hint:"Sets the build of the 3-D figure — heavier = a thicker frame. It does NOT change make %: a free throw needs almost no power, so body weight isn't a ballistics factor."},
+];
+const SETUP=[
+  {k:"footAng",     label:"Feet angle (where the toes point)", min:-10,max:40,step:1,unit:"°", hint:"Turn the toes off the rim — comfortable within ~10° of the hips; toes fighting the hips twist the knees and add wobble."},
+  {k:"footAim",     label:"Shooting foot vs rim center", min:-16,max:16,step:1,unit:" cm", hint:"Put the shooting foot right under the middle of the rim. Off-center → the whole shot drifts that way."},
+  {k:"stanceWidth", label:"Stance width", min:22,max:56,step:1,unit:" cm", hint:"Distance between the feet"},
+  {k:"footStagger", label:"Shooting-foot stagger", min:-10,max:28,step:1,unit:" cm", hint:"How far the shooting-side foot sits ahead of the other"},
+  {k:"hipAng",      label:"Hip turn", min:-10,max:36,step:1,unit:"°", hint:"How far the hips turn off the rim. Keep near the shoulder turn — a big torso twist is hard to repeat."},
+  {k:"shoulderAng", label:"Shoulder turn", min:-10,max:36,step:1,unit:"°", hint:"Turn until the shooting elbow hides under the ball, pointing at the rim (~14° for most). Square shoulders flare the elbow."},
+  {k:"elbowTuck",   label:"Elbow tuck (active correction)", min:0,max:100,step:1,unit:"%", hint:"Muscle the shooting elbow back toward the rim line to correct flare from a non-ideal stance. Lining it up with your shoulder turn (~14°) is free; muscling it in costs consistency — the more you fight your stance, the wider the scatter."},
+];
+const GRIP=[
+  {k:"seamAlign", label:"Seam alignment", min:0,max:100,step:1,unit:"%", hint:"Line the channel seams up across your fingertips every time — same grip, same feel, same clean backspin"},
+  {k:"fingerPos", label:"Ball's centerline under…", min:0,max:100,step:1,unit:"", hint:"0 = index finger on the ball's middle, 50 = the index–middle gap, 100 = middle finger. The last finger off the ball should push through the middle — most shooters live between the gap and the middle finger."},
+  {k:"handSize", label:"Hand size", min:60,max:140,step:1,unit:"%", hint:"Scales the hand on the ball — bigger hands span more of the ball. Just the visual; the index pad stays on the seam center."},
+];
+const LOAD=[
+  {k:"knee",   label:"Knee bend", min:5,max:55,step:1,unit:"°", hint:"Sit into the legs — the power comes from the floor, not the arm"},
+  {k:"dip",    label:"Dip depth", min:0,max:100,step:1,unit:"%", hint:"Drop the ball toward the waist before the rise — sets the rhythm for one fluid motion"},
+];
+const REL=[
+  {k:"angle", label:"Arc (release angle)", min:38,max:62,step:.5,unit:"°", hint:"How high you shoot it. High arc gives the ball a bigger hole to fall through — pros release 50–58°"},
+  {k:"ext",   label:"Release height (extension)", min:0,max:100,step:1,unit:"%", hint:"How fully you reach up at the release — full extension releases higher and closer to the rim"},
+  {k:"sync",  label:"Rhythm", min:0,max:100,step:1,unit:"%", hint:"High = one motion: the ball leaves while the legs are still driving. Low = pause at the set point, then push."},
+  {k:"spin",  label:"Backspin (wrist snap)", min:0,max:5,step:.1,unit:" rev/s", hint:"Snap the wrist — soft touch, friendlier bounces"},
+];
+const ADV=[
+  {k:"power", label:"Power (leg + arm)", min:0,max:100,step:1,unit:"%", hint:"Sets launch speed by hand (ignored while auto-aim is on)"},
+  {k:"form",  label:"Consistency", min:0,max:100,step:1,unit:"%", hint:"How repeatable your motion is, shot to shot. Set this with Calibrate in ① — it's measured from your real FT%, not guessed."},
+];
+const ALLDEFS=[...ME,...SETUP,...GRIP,...LOAD,...REL,...ADV];
+function buildAllGroups(){
+  buildGroup("meSliders",ME); buildGroup("setupSliders",SETUP); buildGroup("gripSliders",GRIP);
+  buildGroup("loadSliders",LOAD); buildGroup("relSliders",REL); buildGroup("advSliders",ADV);
+}
+
+const PRESETS={
+  "Rookie":   {height:188, weight:185, knee:18, shoulderAng:2,  hipAng:2,  footAng:14, stanceWidth:32, footStagger:0, footAim:7, seamAlign:15, fingerPos:15, dip:30, angle:47, ext:45, power:62, spin:1.5, form:54, sync:35, hand:"R", handSize:100, elbowTuck:0},
+  "Pro guard":{height:191, weight:195, knee:30, shoulderAng:14, hipAng:9,  footAng:12, stanceWidth:40, footStagger:5, footAim:0, seamAlign:85, fingerPos:55, dip:55, angle:52, ext:70, power:64, spin:3.0, form:84, sync:72, hand:"R", handSize:100, elbowTuck:0},
+  "Curry":    {height:188, weight:185, knee:36, shoulderAng:16, hipAng:10, footAng:16, stanceWidth:44, footStagger:6, footAim:0, seamAlign:100, fingerPos:65, dip:90, angle:56, ext:62, power:66, spin:3.8, form:94, sync:100, hand:"R", handSize:100, elbowTuck:0},
+  "Big man":  {height:211, weight:250, knee:22, shoulderAng:9,  hipAng:6,  footAng:8,  stanceWidth:48, footStagger:2, footAim:0, seamAlign:50, fingerPos:35, dip:35, angle:47, ext:60, power:60, spin:2.2, form:62, sync:50, hand:"R", handSize:100, elbowTuck:0},
+  "Granny":   {height:185, weight:180, knee:38, shoulderAng:14, hipAng:13, footAng:13, stanceWidth:46, footStagger:0, footAim:0, seamAlign:90, fingerPos:55, dip:20, angle:58, ext:30, power:66, spin:3.4, form:90, sync:45, hand:"R", handSize:100, elbowTuck:0},
+  // Jokić: the "Type 4" overhead catapult. Fully square to the rim (toes at the target, right foot
+  // staggered ahead), legs as a stability platform (minimal knee/dip), ball loaded over/behind the
+  // head, one-handed high-arc release with a floppy follow-through. style:"catapult" switches the
+  // pose model + overhead release height; elbowTuck 100 models his flare-then-tuck elbow — the model
+  // charges its repeatability cost and his elite form pays it.
+  "Jokić":    {height:211, weight:284, knee:14, shoulderAng:0,  hipAng:0,  footAng:0,  stanceWidth:46, footStagger:10, footAim:0, seamAlign:90, fingerPos:60, dip:12, angle:54, ext:92, power:62, spin:3.0, form:82, sync:45, hand:"R", handSize:115, elbowTuck:100, style:"catapult"},
+};
+let preset="Pro guard";
+let S={...PRESETS[preset]};
+
+// ───────────────── trajectory integration ─────────────────
+// launch: {x0,y0,v0,angRad,spin(rev/s)} → integrated path + rim-plane crossing
+function simulate(L,dt){
+  dt=dt||0.004;
+  let x=L.x0, y=L.y0, vx=L.v0*Math.cos(L.angRad), vy=L.v0*Math.sin(L.angRad);
+  const w=L.spin*2*Math.PI;                 // rad/s, backspin
+  const pts=[[x,y]];
+  let cross=null, entryRad=0, crossIdx=-1;
+  for(let i=0;i<2200;i++){
+    const v=Math.hypot(vx,vy)||1e-6;
+    // drag opposes velocity
+    const fd=0.5*RHO*CD*AREA*v*v;
+    let ax=-fd*(vx/v)/MASS, ay=-G-fd*(vy/v)/MASS;
+    // Magnus from backspin: lift perpendicular to velocity (rotate v by +90°)
+    const S_spin=Math.min(0.4, (w*BALL_R)/v);
+    const Cl=1.2*S_spin;                     // modest lift coefficient
+    const fm=0.5*RHO*Cl*AREA*v*v;
+    ax+=fm*(-vy/v)/MASS; ay+=fm*(vx/v)/MASS;
+    const px=x, py=y;
+    vx+=ax*dt; vy+=ay*dt; x+=vx*dt; y+=vy*dt;
+    pts.push([x,y]);
+    // descending crossing of rim plane
+    if(cross===null && vy<0 && py>=RIM_H && y<RIM_H){
+      const t=(py-RIM_H)/(py-y);
+      cross=px+(x-px)*t;
+      entryRad=Math.atan2(Math.abs(vy),Math.abs(vx));
+      crossIdx=pts.length-1;
+    }
+    // stop once the ball is well past/below the rim (after any crossing is recorded)
+    if(y<-0.5 || x>RIM_X+4) break;
+  }
+  return {pts, cross, entryRad, crossIdx};
+}
+
+// solve launch speed so the ideal shot passes through rim center (auto-aim)
+function solveSpeed(x0,y0,angRad,spin){
+  let lo=4, hi=13;
+  for(let i=0;i<34;i++){
+    const mid=(lo+hi)/2;
+    const r=simulate({x0,y0,v0:mid,angRad,spin});
+    if(r.cross===null){ lo=mid; continue; }      // fell short → faster
+    if(r.cross<RIM_X) lo=mid; else hi=mid;
+  }
+  return (lo+hi)/2;
+}
+
+// map body/release params → nominal launch
+function deriveLaunch(s){
+  const H=s.height/100;
+  let y0=H*1.14 + (s.ext/100)*0.34;               // release height ~2.2–2.6 m
+  if(s.style==="catapult") y0+=0.12;              // overhead release point sits higher than a forehead-front one
+  const x0=RELEASE_X + (s.ext/100)*0.18;          // full extension reaches forward
+  const angRad=s.angle*Math.PI/180;
+  let v0;
+  if(autoaim()) v0=solveSpeed(x0,y0,angRad,s.spin);
+  else v0=6.0 + (s.power/100)*3.4;                // manual 6.0–9.4 m/s
+  // local slope of the "makes-it" speed vs release angle — lets a perturbed release angle re-aim its
+  // speed to the rim (real shooters do this), so angle variation rides the make manifold, not pure error
+  const d=2*Math.PI/180, vp=solveSpeed(x0,y0,angRad+d,s.spin), vm=solveSpeed(x0,y0,angRad-d,s.spin);
+  return {x0,y0,v0,angRad,spin:s.spin,dVdA:(vp-vm)/(2*d)};
+}
+
+// classify a single shot given its rim crossing + lateral offset
+// forward window tightens for flat entries; lateral window is geometric; backspin adds softness
+function classify(cross, entryRad, lat, spin){
+  if(cross===null) return {make:0, depth:-99};
+  const depth=cross-RIM_X;                          // + = long, − = short
+  const se=Math.max(0.05,Math.sin(entryRad));
+  const soft=1+0.16*Math.min(1,spin/3.5);           // backspin forgiveness
+  const fwd=Math.max(0,(RIM_D*se-BALL_D))/(2*se)*soft;  // forward half-window
+  const sideW=CLEAN*soft;                            // lateral half-window
+  if(fwd<=0) return {make:0, depth};
+  const e=(depth*depth)/(fwd*fwd)+(lat*lat)/(sideW*sideW);
+  if(e<=1) return {make:1, depth, swish:true};       // clean through
+  if(e<=2.0) return {make:0.5, depth};               // rattles — half credit
+  return {make:0, depth};
+}
+
+// ───────────────── randoms (Box–Muller) ─────────────────
+// seedable RNG (mulberry32) — the solvers seed it so candidate comparisons share the same
+// random draws (common random numbers); live UI rolls stay truly random (_rng=null).
+let _rng=null;
+function srand(seed){let t=seed>>>0;_rng=()=>{t+=0x6D2B79F5;let r=Math.imul(t^t>>>15,1|t);
+  r^=r+Math.imul(r^r>>>7,61|r);return((r^r>>>14)>>>0)/4294967296;};}
+const rand=()=>_rng?_rng():Math.random();
+function gauss(){ let u=0,v=0; while(!u)u=rand(); while(!v)v=rand();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// Monte-Carlo make % + dispersion samples for the rim view
+// angGood / angBad: measured release-angle SD (°) — proficient (≥70%) vs non-proficient shooters,
+// from markerless-mocap of 34 free-throw shooters (Frontiers in Sports & Active Living). spd/lat +
+// execBase/execSlope set the miss-causing execution scatter that the consistency knob & FT% calibration drive.
+// angGood/angBad: measured release-angle SD (°) for proficient (≥70%) vs non-proficient shooters
+// (markerless-mocap, 34 shooters). formHi/formLo: the consistency-knob levels those two groups map to,
+// so the SD line passes through the data there and extrapolates (clamped to angMin..angMax) for elite/poor.
+// spd/lat/execBase/execSlope set the miss-causing execution scatter the FT% calibration drives.
+const TUNE={angGood:3.2, angBad:5.4, formHi:82, formLo:52, angMin:2.0, angMax:6.6,
+            spd:0.012, lat:0.045, execBase:1.00, execSlope:0.65,
+            effRef:7.0, effK:4};   // launch-effort penalty: scatter ×(v0/effRef)^effK — see monteCarlo
+function monteCarlo(s, base, N){
+  N=N||600;
+  const f=s.form/100;
+  const ai=alignInfo(s);
+  const kc=(s.sync??60)/100;                          // one-motion kinetic-chain sync
+  // secondary-mechanics multiplier (≈1 at good defaults): rhythm, torso twist, feet fighting hips, seam routine
+  const mech=(1-0.12*(kc-0.6))*ai.twistMul*ai.strainMul*ai.tuckMul*(1.06-0.06*ai.seam);
+  // launch-effort penalty: motor noise grows with the required launch speed (signal-dependent noise),
+  // so arcs demanding more speed than the ~7 m/s flat-minimum scatter more. magnitude (effK) is
+  // calibrated so make% peaks at ~52–56° release (~45–50° entry), matching Noah tracking data —
+  // without this the entry-window geometry alone would (wrongly) reward 62° rainbows.
+  const eff=Math.max(0.9,Math.min(2.2,Math.pow((base.v0||TUNE.effRef)/TUNE.effRef,TUNE.effK)));
+  // release-angle SD anchored to measured data: 3.2° at formHi (proficient) → 5.4° at formLo
+  // (non-proficient), the line extrapolated & clamped so elite consistency tightens toward ~2°
+  const sdLine=TUNE.angGood+(TUNE.angBad-TUNE.angGood)*(TUNE.formHi-s.form)/(TUNE.formHi-TUNE.formLo);
+  const sAng=Math.max(TUNE.angMin,Math.min(TUNE.angMax,sdLine))*mech*eff*Math.PI/180;   // rad
+  // miss-causing execution scatter (speed push + aim), scaled by consistency — this is the FT% lever
+  const exec=(TUNE.execBase-TUNE.execSlope*f)*mech*eff;
+  const sSpd=TUNE.spd*exec;                            // fraction of v0
+  const sLat=TUNE.lat*exec*ai.latMul;                 // m — widened by poor elbow alignment
+  const dVdA=base.dVdA||0;
+  let made=0; const samples=[];
+  for(let i=0;i<N;i++){
+    const dAng=gauss()*sAng;
+    const ang=base.angRad+dAng;
+    const v0=(base.v0+dVdA*dAng)*(1+gauss()*sSpd);     // re-aim speed to the rim for this angle, then exec error
+    const lat=ai.latBias+gauss()*sLat;
+    const r=simulate({x0:base.x0,y0:base.y0,v0,angRad:ang,spin:base.spin},0.006);
+    const c=classify(r.cross,r.entryRad,lat,base.spin);
+    made+=c.make;
+    if(i<260 && r.cross!==null) samples.push({depth:c.depth, lat, make:c.make});
+  }
+  return {pct:100*made/N, samples, sLat, sScale:exec, sdAng:sAng*180/Math.PI};
+}
+
+// ───────────────── state / compute ─────────────────
+let last=null;            // {launch, ideal, mc, entryDeg}
+function compute(){
+  const launch=deriveLaunch(S);
+  const ideal=simulate(launch,0.003);
+  const entryDeg=ideal.cross!==null ? ideal.entryRad*180/Math.PI : 0;
+  const idc=classify(ideal.cross, ideal.entryRad, alignInfo(S).latBias, S.spin);
+  const mc=monteCarlo(S, launch);
+  last={launch, ideal, entryDeg, mc, idc};
+  // stats
+  setT("sMake", mc.pct.toFixed(0));
+  setT("sEntry", ideal.cross!==null? entryDeg.toFixed(0):"—");
+  setT("sAng", S.angle.toFixed(0));
+  setT("sAngSD", mc.sdAng.toFixed(1));
+  setT("sSpd", launch.v0.toFixed(1));
+  // verdict
+  const vd=document.getElementById("verdict");
+  if(ideal.cross===null){ vd.textContent="✗ Air ball (short)"; vd.style.color="var(--bad)"; }
+  else if(idc.swish){ vd.textContent="✓ Swish (center)"; vd.style.color="var(--good)"; }
+  else if(idc.make>0){ vd.textContent="◐ Rattles in"; vd.style.color="var(--warn)"; }
+  else { vd.textContent=(idc.depth>0?"✗ Long":"✗ Short"); vd.style.color="var(--bad)"; }
+}
+function setT(id,v){document.getElementById(id).textContent=v;}
+
+// ───────────────── canvas helpers ─────────────────
+function fit(c,H){const w=c.parentElement.clientWidth,dpr=window.devicePixelRatio||1;
+  c.width=w*dpr;c.height=(H||300)*dpr;c.style.height=(H||300)+"px";
+  const ctx=c.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,w,h:H||300};}
+
+// ───────────────── side-view scene (court + shooter + arc) ─────────────────
+function drawScene(progress){
+  const c=document.getElementById("scene");const {ctx,w,h}=fit(c,380);
+  ctx.clearRect(0,0,w,h);
+  // world→screen: x 0..(RIM_X+0.9), y 0..4.2
+  const padL=24,padR=24,padB=46,padT=14;
+  const worldW=RIM_X+0.9, worldH=4.3;
+  const sx=(w-padL-padR)/worldW, sy=(h-padT-padB)/worldH;
+  const sc=Math.min(sx,sy);
+  const X=x=>padL+x*sc, Y=y=>h-padB-y*sc;
+  // floor
+  ctx.strokeStyle="#3a2817"; ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(0,Y(0));ctx.lineTo(w,Y(0));ctx.stroke();
+  // free-throw line tick under shooter
+  ctx.strokeStyle="#5a3d22";ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(X(RELEASE_X),Y(0));ctx.lineTo(X(RELEASE_X),Y(0)+8);ctx.stroke();
+  // backboard + pole
+  const bbX=X(RIM_X+RIM_R+0.15);
+  ctx.strokeStyle="#6b4a2a";ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(bbX,Y(3.95));ctx.lineTo(bbX,Y(2.90));ctx.stroke();
+  ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(bbX,Y(0));ctx.lineTo(bbX,Y(2.90));ctx.stroke();
+  // rim (front + back edge)
+  ctx.strokeStyle=last&&last.idc.make>0?"#ff8a3d":"#ff8a3d";ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(X(RIM_X-RIM_R),Y(RIM_H));ctx.lineTo(X(RIM_X+RIM_R),Y(RIM_H));ctx.stroke();
+  // net
+  ctx.strokeStyle="rgba(255,255,255,.35)";ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){const t=i/5;const xx=X(RIM_X-RIM_R+RIM_D*t);
+    ctx.beginPath();ctx.moveTo(xx,Y(RIM_H));ctx.lineTo(X(RIM_X)+ (xx-X(RIM_X))*0.4,Y(RIM_H-0.42));ctx.stroke();}
+
+  // for a made shot, clip the arc just below the rim so it visibly drops through
+  const fullPts=last?last.ideal.pts:[];
+  let drawN=fullPts.length;
+  if(last && last.idc.make>0 && last.ideal.crossIdx>0){
+    drawN=last.ideal.crossIdx;
+    while(drawN<fullPts.length && fullPts[drawN][1] > RIM_H-0.42) drawN++;
+    drawN=Math.min(fullPts.length, drawN+1);
+  }
+
+  // ideal trajectory (dashed)
+  if(last){
+    ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(255,138,61,.55)";ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<drawN;i++){const p=fullPts[i];(i?ctx.lineTo:ctx.moveTo).call(ctx,X(p[0]),Y(p[1]));}
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // shooter pose (shared full-body model)
+  const P=poseParams(progress);
+  const g=poseGeom(P);
+  drawShooterSide(ctx,X,Y,sc,P,g);
+
+  // ── height reference: foot-ruler + a standing-height stick (labeled) + release-height line, so the
+  //    true-scale body size reads clearly against the 10-ft rim and visibly changes with height ──
+  ctx.font="11px ui-sans-serif,system-ui,sans-serif"; ctx.textBaseline="middle";
+  ctx.lineWidth=1; ctx.strokeStyle="rgba(150,115,75,.40)"; ctx.fillStyle="rgba(205,182,146,.7)"; ctx.textAlign="left";
+  for(let ftv=2; ftv<=12; ftv+=2){ const yy=Y(ftv*0.3048);
+    ctx.beginPath();ctx.moveTo(padL-8,yy);ctx.lineTo(padL,yy);ctx.stroke();
+    ctx.fillText(ftv+"′", padL+2, yy); }
+  if(last){
+    const Hm=S.height/100, stickX=X(RELEASE_X)-0.40*sc, yH=Y(Hm);
+    ctx.strokeStyle="rgba(87,217,138,.55)"; ctx.lineWidth=2;                       // standing-height stick
+    ctx.beginPath();ctx.moveTo(stickX,Y(0));ctx.lineTo(stickX,yH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(stickX-5,yH);ctx.lineTo(stickX+5,yH);ctx.stroke();
+    const inch=Hm*39.3701; let ft=Math.floor(inch/12), ins=Math.round(inch-ft*12); if(ins===12){ft++;ins=0;}
+    ctx.fillStyle="rgba(120,230,160,.95)"; ctx.textAlign="right"; ctx.fillText(`${ft}′${ins}″`, stickX-7, yH);
+    const ry=last.launch.y0, yr=Y(ry);                                            // release-height line to the rim
+    ctx.setLineDash([3,4]); ctx.strokeStyle="rgba(255,138,61,.6)"; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(X(RELEASE_X),yr);ctx.lineTo(X(RIM_X-RIM_R),yr);ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle="rgba(255,170,110,.92)"; ctx.textAlign="left"; ctx.fillText(`release ${(ry*3.281).toFixed(1)} ft`, X(RELEASE_X)+5, yr-9);
+  }
+  ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+
+  // flying ball (follows the clipped path so makes settle in the net)
+  if(last && drawN){
+    let bx,by,rot=0;
+    if(progress<FLIGHT_START){ bx=g.ball[0]; by=g.ball[1]; }   // still in the hands
+    else{
+      const ft=(progress-FLIGHT_START)/(1-FLIGHT_START);
+      const idx=Math.min(drawN-1, Math.floor(ft*(drawN-1)));
+      bx=fullPts[idx][0]; by=fullPts[idx][1];
+      rot=2*Math.PI*S.spin*idx*0.003;                          // seam angle = rev/s × flight time
+    }
+    drawBall(ctx,X(bx),Y(by),BALL_R*sc,rot);
+  }
+}
+
+function drawBall(ctx,cx,cy,r,rot){
+  ctx.fillStyle="#ff8a3d";ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();
+  ctx.strokeStyle="#1c140d";ctx.lineWidth=Math.max(1,r*0.12);
+  ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke();
+  // seams rotate with backspin: ball flying right → top surface moves back toward the shooter
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(-(rot||0));
+  ctx.beginPath();ctx.moveTo(-r,0);ctx.lineTo(r,0);
+  ctx.moveTo(0,-r);ctx.lineTo(0,r);ctx.stroke();
+  ctx.restore();
+}
+
+// a tapered capsule (rounded ends) — the building block for the filled body silhouette
+function drawCapsule(ctx,ax,ay,bx,by,ra,rb,fill){
+  const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy)||1e-6,nx=-dy/len,ny=dx/len;
+  ctx.fillStyle=fill;
+  ctx.beginPath();
+  ctx.moveTo(ax+nx*ra,ay+ny*ra);ctx.lineTo(bx+nx*rb,by+ny*rb);
+  ctx.lineTo(bx-nx*rb,by-ny*rb);ctx.lineTo(ax-nx*ra,ay-ny*ra);
+  ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.arc(ax,ay,ra,0,7);ctx.fill();          // rounded joint at each end
+  ctx.beginPath();ctx.arc(bx,by,rb,0,7);ctx.fill();
+}
+
+// ───────────────── low-poly body mesh (no libraries: rings → quads → painter sort) ─────────────────
+const V3={
+  sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],
+  add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],
+  scale:(a,s)=>[a[0]*s,a[1]*s,a[2]*s],
+  cross:(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]],
+  norm:a=>{const l=Math.hypot(a[0],a[1],a[2])||1e-9;return [a[0]/l,a[1]/l,a[2]/l];},
+  lerp3:(a,b,t)=>[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t],
+};
+const MESH_LIGHT=V3.norm([-0.45,0.8,-0.45]);
+
+// horizontal body ring: ellipse spanned by the L→R joint axis and a forward depth dd
+function bodyRing(L,R,dd,n){
+  n=n||8;
+  const c=V3.scale(V3.add(L,R),0.5), lat=V3.sub(R,c);
+  let f=V3.cross(lat,[0,1,0]); f=V3.norm(f); if(f[0]<0)f=V3.scale(f,-1);   // forward = toward the rim
+  const pts=[];
+  for(let i=0;i<n;i++){const a=i/n*2*Math.PI;
+    pts.push(V3.add(c,V3.add(V3.scale(lat,Math.cos(a)),V3.scale(f,Math.sin(a)*dd))));}
+  return pts;
+}
+// ring perpendicular to a bone (for limb tubes)
+function boneRing(c,d,r,n){
+  d=V3.norm(d);
+  const ref=Math.abs(d[1])>0.92?[1,0,0]:[0,1,0];
+  const s=V3.norm(V3.cross(d,ref)), u=V3.cross(s,d);
+  const pts=[];
+  for(let i=0;i<n;i++){const a=i/n*2*Math.PI;
+    pts.push(V3.add(c,V3.add(V3.scale(s,Math.cos(a)*r),V3.scale(u,Math.sin(a)*r))));}
+  return pts;
+}
+function band(rA,rB,col,out){
+  const n=rA.length;
+  for(let i=0;i<n;i++){const j=(i+1)%n;out.push({pts:[rA[i],rA[j],rB[j],rB[i]],col});}
+}
+// limb tube A→B, radii ra→rb, slightly overlapping the joints so bends stay closed
+function tube(A,B,ra,rb,col,out,n){
+  n=n||6;
+  const d=V3.norm(V3.sub(B,A));
+  const A2=V3.sub(A,V3.scale(d,ra*0.35)), B2=V3.add(B,V3.scale(d,rb*0.35));
+  band(boneRing(A2,d,ra,n),boneRing(B2,d,rb,n),col,out);
+}
+// limb with a muscle belly: extra ring of radius rm at fraction t down the bone
+function limb3(A,B,ra,rm,rb,t,col,out,n){
+  n=n||6;
+  const d=V3.norm(V3.sub(B,A));
+  const A2=V3.sub(A,V3.scale(d,ra*0.35)), B2=V3.add(B,V3.scale(d,rb*0.35));
+  const M=V3.lerp3(A2,B2,t);
+  const r0=boneRing(A2,d,ra,n), r1=boneRing(M,d,rm,n), r2=boneRing(B2,d,rb,n);
+  band(r0,r1,col,out); band(r1,r2,col,out);
+}
+function ballMesh(c,r,col,out,n){
+  n=n||6;
+  const lats=[-0.82,-0.35,0.35,0.82];
+  const rings=lats.map(l=>{const rr=r*Math.sqrt(1-l*l),pts=[];
+    for(let i=0;i<n;i++){const a=i/n*2*Math.PI;
+      pts.push([c[0]+Math.cos(a)*rr, c[1]+l*r, c[2]+Math.sin(a)*rr]);}return pts;});
+  out.push({pts:[...rings[0]].reverse(),col});                 // bottom cap
+  for(let i=0;i<rings.length-1;i++) band(rings[i],rings[i+1],col,out);
+  out.push({pts:rings[rings.length-1],col});                   // top cap
+}
+
+// girth multiplier from weight vs an athletic reference (BMI ~23) for the height — thickens/thins the
+// figure's frame. visual only (weight is not a make-% factor for a free throw).
+function bodyBuild(){
+  const H=S.height/100, kg=(S.weight??190)*0.45359, bmi=kg/(H*H);
+  return Math.max(0.80, Math.min(1.45, Math.sqrt(bmi/23)));
+}
+function buildBodyMesh(g){
+  const H=S.height/100*bodyBuild(), Q=[];     // H carries the build girth → all limb/torso thicknesses scale
+  const q=g.align.quality;
+  const ARM = q>0.80?[57,217,138] : q>0.55?[255,138,61] : [240,85,107];
+  const SKIN=[205,179,154], DIM=[178,153,127];                 // bare arms/legs (guide side a touch dimmer)
+  // one team colour top & bottom, white collar/waistband trim
+  const TEAM=[86,120,178], TRIM=[236,236,240], SHOE=[120,98,76];
+  const JER=TEAM, SHORTS=TEAM, WAIST=TRIM;
+  // widen/narrow a L↔R joint pair about its midpoint (baggy shorts / narrow tank straps)
+  const widen=(L,R,f)=>{const c=V3.scale(V3.add(L,R),0.5);
+    return [V3.add(c,V3.scale(V3.sub(L,c),f)), V3.add(c,V3.scale(V3.sub(R,c),f))];};
+  // torso: sleeveless tank jersey — straps pulled inboard of the deltoids so the shoulders are bare
+  const rHip=bodyRing(g.hipL,g.hipR,0.060*H);
+  const rW=bodyRing(g.waistL,g.waistR,0.052*H);
+  const chL=V3.lerp3(g.waistL,g.shoL,0.60), chR=V3.lerp3(g.waistR,g.shoR,0.60);
+  const rCh=bodyRing(chL,chR,0.062*H);
+  const [jShoL,jShoR]=widen(g.shoL,g.shoR,0.64);              // straps sit well inboard of the shoulders
+  const rSh=bodyRing(jShoL,jShoR,0.048*H);
+  band(rHip,rW,JER,Q); band(rW,rCh,JER,Q); band(rCh,rSh,JER,Q);
+  Q.push({pts:rSh,col:TRIM});                                 // white collar trim across the straps
+  // ── shorts: same team colour, shorter (retro) cut with a white waistband stripe ──
+  const [shL,shR]=widen(g.hipL,g.hipR,1.06);
+  const rWBt=bodyRing(shL,shR,0.062*H);                        // waistband top (at the hips)
+  const rWBb=bodyRing(V3.add(shL,[0,-0.05*H,0]),V3.add(shR,[0,-0.05*H,0]),0.062*H);   // waistband bottom
+  const crL=V3.add(V3.lerp3(shL,shR,0.16),[0,-0.13*H,0]),
+        crR=V3.add(V3.lerp3(shR,shL,0.16),[0,-0.13*H,0]);
+  const rCr=bodyRing(crL,crR,0.056*H);
+  band(rHip,rWBt,SHORTS,Q);                                    // team-colour flare off the jersey hem
+  band(rWBt,rWBb,WAIST,Q);                                     // white waistband stripe (a full band)
+  band(rWBb,rCr,SHORTS,Q);
+  Q.push({pts:[...rCr].reverse(),col:SHORTS});                 // close the seat
+  // legs: quad + calf bellies, from the femur sockets
+  limb3(g.legL,g.kneeL,0.038*H,0.046*H,0.027*H,0.35,SKIN,Q);
+  limb3(g.kneeL,g.footL,0.026*H,0.033*H,0.016*H,0.30,SKIN,Q);
+  limb3(g.legR,g.kneeR,0.038*H,0.046*H,0.027*H,0.35,SKIN,Q);
+  limb3(g.kneeR,g.footR,0.026*H,0.033*H,0.016*H,0.30,SKIN,Q);
+  // shorts legs — shorter retro cut, ending mid-thigh, with a white leg-hole trim ring
+  [[g.legL,g.kneeL],[g.legR,g.kneeR]].forEach(([leg,knee])=>{
+    const hem=V3.lerp3(leg,knee,0.44), d=V3.norm(V3.sub(knee,leg));
+    tube(leg,hem,0.057*H,0.058*H,SHORTS,Q,7);
+    band(boneRing(V3.sub(hem,V3.scale(d,0.020*H)),d,0.060*H,7), boneRing(hem,d,0.060*H,7), TRIM,Q);
+  });
+  // knee balls close the bend
+  ballMesh(g.kneeL,0.029*H,SKIN,Q); ballMesh(g.kneeR,0.029*H,SKIN,Q);
+  // shoes
+  tube(g.heelL,g.toeL,0.024*H,0.015*H,SHOE,Q); tube(g.heelR,g.toeR,0.024*H,0.015*H,SHOE,Q);
+  // arms: biceps + forearm bellies; shooting arm carries the alignment color
+  limb3(g.shootSho,g.shootElb,0.026*H,0.030*H,0.020*H,0.40,ARM,Q);
+  limb3(g.shootElb,g.shootHand,0.022*H,0.026*H,0.013*H,0.25,ARM,Q);
+  limb3(g.guideSho,g.guideElb,0.024*H,0.028*H,0.019*H,0.40,DIM,Q);
+  limb3(g.guideElb,g.guideHand,0.020*H,0.024*H,0.012*H,0.25,DIM,Q);
+  // elbow balls + deltoid caps (jersey sleeve caps over the shoulders)
+  ballMesh(g.shootElb,0.022*H,ARM,Q); ballMesh(g.guideElb,0.020*H,DIM,Q);
+  ballMesh(g.shootSho,0.032*H,ARM,Q); ballMesh(g.guideSho,0.032*H,DIM,Q);   // bare deltoids (sleeveless tank)
+  // armhole trim rings around the bare shoulders (the sleeveless openings)
+  [[g.shootSho,g.shootElb],[g.guideSho,g.guideElb]].forEach(([sho,elb])=>{
+    const d=V3.norm(V3.sub(elb,sho));
+    band(boneRing(V3.lerp3(sho,elb,0.06),d,0.031*H,7), boneRing(V3.lerp3(sho,elb,0.15),d,0.031*H,7), TRIM,Q);
+  });
+  // neck reaches the underside of the skull (no floating head)
+  tube(g.shoC,V3.add(g.head,[0,-g.headR*0.55,0]),0.030*H,0.024*H,SKIN,Q,6);
+  ballMesh(g.head,g.headR*1.06,SKIN,Q,6);
+  return Q;
+}
+
+// flat-shaded painter's renderer with wireframe edges. projFn: world→[sx,sy]; depthFn: bigger = farther.
+function drawMesh(ctx,quads,projFn,depthFn){
+  const polys=[];
+  for(const f of quads){
+    const pp=f.pts.map(projFn); if(pp.some(p=>!p)) continue;
+    const n=V3.norm(V3.cross(V3.sub(f.pts[1],f.pts[0]),V3.sub(f.pts[2],f.pts[0])));
+    const lam=0.55+0.45*Math.abs(n[0]*MESH_LIGHT[0]+n[1]*MESH_LIGHT[1]+n[2]*MESH_LIGHT[2]);
+    let d=0; for(const P of f.pts) d+=depthFn(P); d/=f.pts.length;
+    polys.push({pp,d,fill:`rgb(${f.col[0]*lam|0},${f.col[1]*lam|0},${f.col[2]*lam|0})`});
+  }
+  polys.sort((a,b)=>b.d-a.d);
+  ctx.lineJoin="round";
+  for(const P of polys){
+    ctx.fillStyle=P.fill;
+    ctx.beginPath();ctx.moveTo(P.pp[0][0],P.pp[0][1]);
+    for(let i=1;i<P.pp.length;i++)ctx.lineTo(P.pp[i][0],P.pp[i][1]);
+    ctx.closePath();ctx.fill();
+    ctx.strokeStyle="rgba(24,15,9,.38)";ctx.lineWidth=1;ctx.stroke();
+  }
+}
+
+// ───────────────── shared full-body shooting model ─────────────────
+// keyframe schedule with easing: smooth through interior keys (no velocity corners),
+// but ACCELERATING into the final key — a real shot speeds up into release, never coasts.
+function sched(t,kf){
+  if(t<=kf[0][0]) return kf[0][1];
+  for(let i=1;i<kf.length;i++){ if(t<=kf[i][0]){ const a=kf[i-1],b=kf[i];
+    let u=(t-a[0])/(b[0]-a[0]);
+    u=(i===kf.length-1)? u*u : u*u*(3-2*u);
+    return a[1]+(b[1]-a[1])*u; } }
+  return kf[kf.length-1][1];
+}
+const lerp=(a,b,t)=>a+(b-a)*t;
+
+// 2-bone inverse kinematics: place the elbow for a shoulder→hand chain so the arm
+// is always a valid linkage (never hyperextends). `pole` biases which way the elbow points.
+function ikElbow(Sx,Sy,Sz, Wx,Wy,Wz, Lu, Lf, pole){
+  const vx=Wx-Sx, vy=Wy-Sy, vz=Wz-Sz;
+  const dist=Math.hypot(vx,vy,vz)||1e-6;
+  const ux=vx/dist, uy=vy/dist, uz=vz/dist;
+  const d=Math.min(dist, Lu+Lf-1e-3);                       // clamp if hand is out of reach → straight arm
+  const cosA=Math.max(-1,Math.min(1,(Lu*Lu+d*d-Lf*Lf)/(2*Lu*d)));
+  const A=Math.acos(cosA), ca=Math.cos(A), sa=Math.sin(A);
+  // component of the pole perpendicular to the shoulder→hand axis (the bend plane)
+  const pdot=pole[0]*ux+pole[1]*uy+pole[2]*uz;
+  let px=pole[0]-pdot*ux, py=pole[1]-pdot*uy, pz=pole[2]-pdot*uz;
+  const pl=Math.hypot(px,py,pz)||1e-6; px/=pl; py/=pl; pz/=pl;
+  return [Sx+Lu*(ca*ux+sa*px), Sy+Lu*(ca*uy+sa*py), Sz+Lu*(ca*uz+sa*pz)];
+}
+
+// motion phase scalars across the shot: gather → dip → drive → release → follow-through
+function poseParams(progress){
+  const m=Math.min(1,Math.max(0,progress/FLIGHT_START));        // body windup 0..1
+  const ft=Math.min(1,Math.max(0,(progress-FLIGHT_START)/(1-FLIGHT_START))); // follow-through
+  const base=S.knee/55;                                          // loaded crouch from knee slider
+  const d=S.dip/100;                                             // dip depth → coil + low gather
+  const kc=(S.sync??60)/100;                                     // 1 = one-motion, 0 = two-motion
+  const deep=Math.min(1,base+0.14+0.16*d);
+  // legs — whole-clip timeline so a one-motion shot is still extending AT release (0.42)
+  const legOne=sched(progress,[[0,base],[0.10,deep],[0.50,0.05],[1,0]]);
+  const legTwo=sched(progress,[[0,base],[0.09,deep*0.9],[0.30,0.05],[0.42,0.05],[1,0]]); // legs finish, then pause
+  const legBend=lerp(legTwo,legOne,kc);
+  // ball rise (windup) — sched() stops at every interior knot, so a one-motion raise must be a
+  // single dip→release segment (last-segment ease-in = continuous acceleration, no mid-raise stall);
+  // only the two-motion curve keeps interior knots — its set-point pause is a real stop.
+  const raiseOne=sched(m,[[0,0.16],[0.26,-0.07*d],[1,1]]);                        // one fluid accelerating rise
+  const raiseTwo=sched(m,[[0,0.16],[0.22,-0.05*d],[0.46,0.54],[0.62,0.56],[1,1]]); // set-point hold, then fire
+  // catapult: the ball starts at the waist and climbs while the body dips (counter-weight), reaching
+  // the overhead set at u=0.70 — the interior knot's velocity-zero IS his beat — then fires one-handed
+  const raise=S.style==="catapult" ? sched(m,[[0,0],[0.62,0.70],[1,1]]) : lerp(raiseTwo,raiseOne,kc);
+  const lean=sched(m,[[0,0.05],[0.26,0.10],[0.70,0.02],[1,0]]);               // forward lean (m)
+  // toe-rise — heels leave the floor WITH the leg drive (they're half up by mid-extension), not after;
+  // one-motion peaks just after release, two-motion before. both settle slightly off max tiptoe.
+  const riseOne=sched(progress,[[0,0],[0.12,0.02],[0.45,0.90],[0.60,1],[0.85,1],[1,0.86]]);
+  const riseTwo=sched(progress,[[0,0],[0.10,0.04],[0.30,1],[0.85,1],[1,0.86]]);
+  const rise=lerp(riseTwo,riseOne,kc);
+  const wrist=ft*(2-ft);                                         // the snap is fast, then settles
+  // follow-through: traditional form holds the goose-neck; the catapult "flops" — wrist and fingers
+  // relax almost immediately after release
+  const relax=S.style==="catapult" ? (ft>0.08?Math.min(1,(ft-0.08)/0.30)**2:0)
+                                   : (ft>0.7?((ft-0.7)/0.3)**2:0);
+  return {m,ft,legBend,raise,lean,rise,wrist,kc,relax};
+}
+
+// 3-D joints (x forward→rim, y up, z lateral; shooter faces +x, camera behind)
+function poseGeom(p){
+  const H=S.height/100;
+  const relX=last?last.launch.x0:RELEASE_X, relY=last?last.launch.y0:H*1.3;
+  const ankY=0.06, feetX=relX-0.34;
+  const fullHip=H*0.50;
+  const riseLift=(p.rise||0)*0.045*H;                       // up onto the toes through the release
+  const hipY=ankY+(fullHip-ankY)*(1-0.26*p.legBend)+riseLift;   // deep-crouch mapping: full legBend renders ~60-65° knee flexion (real FT gathers hit 55-70°)
+  const shoY=hipY+H*0.28, headY=shoY+H*0.13;
+  const hipX=feetX+0.04+p.lean, shoX=hipX+0.02+p.lean*0.4;
+  const kneeY=ankY+(hipY-ankY)*0.50, kneeX=feetX+0.11+p.legBend*0.17;   // knees track forward with the deeper sit
+  // shooting hand: ball stays OUT IN FRONT of the body (clears the head/torso in the side view) —
+  // the catapult instead travels a 3-waypoint path: waist gather → over-the-hairline set (u=0.70,
+  // where the raise curve's beat lands) → release. the slight sine bow keeps it close past the face.
+  // fingertip offset at full extension: the wrist stops this far short of the release point so the
+  // BALL reaches (relX,relY) off the fingertips. kept small so the shooting arm extends nearly STRAIGHT
+  // at release (wrist ≈ 99% of full reach) rather than leaving the elbow bent.
+  const FT_FWD=0.028, FT_UP=0.075;
+  const cat=S.style==="catapult";
+  let handX,handY;
+  if(cat){
+    const u=Math.max(0,Math.min(1,p.raise));
+    const gX=hipX+0.30, gY=hipY+0.10;                 // gather: ball at the waist, out in front
+    const sX=shoX+0.03, sY=shoY+H*0.17;               // set: over and slightly behind the hairline
+    if(u<0.70){
+      const t=u/0.70, fX=shoX+0.26, fY=shoY+H*0.14;   // forehead-front waypoint: the ball climbs IN FRONT
+      if(t<0.72){const s=t/0.72; handX=lerp(gX,fX,s); handY=lerp(gY,fY,s);}          // of the face…
+      else{const s=(t-0.72)/0.28; handX=lerp(fX,sX,s); handY=lerp(fY,sY,s);}         // …then back over the crown
+    }
+    else{const t=(u-0.70)/0.30; handX=lerp(sX,relX-FT_FWD,t); handY=lerp(sY,relY-FT_UP,t);}   // wrist stops short: the BALL reaches (relX,relY) off the fingertips
+    {const eL=Math.max(0,Math.min(1,p.raise)); handY+=riseLift*eL*(1-eL);}   // fades → release exactly on the physics point
+  }else{
+    const setX=shoX+0.19, setY=shoY-0.04;
+    const scurve=Math.sin(Math.max(0,Math.min(1,p.raise))*Math.PI)*0.05; // bows toward the body mid-rise
+    const eL=Math.max(0,Math.min(1,p.raise));
+    handX=lerp(setX,relX-FT_FWD,p.raise)-scurve;                      // wrist stops short of the release
+    handY=lerp(setY,relY-FT_UP,p.raise)+riseLift*eL*(1-eL);           // point — the BALL gets there off the fingertips;
+                                                                      // body-lift follows mid-rise but fades so the
+                                                                      // release lands EXACTLY on the physics point
+  }
+  // ball rides in the hand until release, settling toward center-line
+  // the ball rides from the palm (gather) up onto the FINGERTIPS (release): at full raise its centre
+  // sits +FT_UP above / +FT_FWD ahead of the wrist — exactly (relX,relY), so flight starts seamlessly
+  const eB=Math.max(0,Math.min(1,p.raise));
+  const ballX=handX+FT_FWD*eB, ballY=handY+lerp(BALL_R*0.3,FT_UP,eB), ballZ=lerp(0.05,0,p.raise);
+  // guide (left) hand frames the ball, then peels off — the catapult's true one-handed release
+  // separates the guide hand early, during the raise, not at the wrist snap
+  const gsep=Math.max(p.wrist, cat?Math.min(1,Math.max(0,(p.raise-0.66)/0.28)):0);
+  const guideX=handX-0.04, guideY=handY-0.02-gsep*0.30, guideZ=-0.11-gsep*0.05;
+  const shZ=H*0.125, hipZ=H*0.095;                         // shoulder / hip half-widths
+  // ── independent yaws: hips/legs/feet turn by hipAng, shoulders/arms/head by shoulderAng ──
+  // righty opens toward 11 o'clock → toes point to his LEFT (screen-left from behind), hence the minus
+  const ai=alignInfo(S), dir=ai.dir, sSign=dir;            // sSign>0 → shoots with the right
+  const aimZ=(S.footAim??0)/100, sw=(S.stanceWidth??38)/100, stag=(S.footStagger??0)/100;
+  // The SHOOTING side stacks on the rim line (z = aimZ); the body splays to the guide side. So at
+  // footAim = 0 the shooting foot AND shooting shoulder sit right under the centre of the rim.
+  const zShoSh=aimZ, zShoGu=aimZ - sSign*2*shZ;            // shooting / guide shoulder
+  const zHipSh=aimZ, zHipGu=aimZ - sSign*2*hipZ;
+  const zFtSh =aimZ, zFtGu =aimZ - sSign*sw;
+  const zShoR=sSign>0?zShoSh:zShoGu, zShoL=sSign>0?zShoGu:zShoSh;
+  const zHipR=sSign>0?zHipSh:zHipGu, zHipL=sSign>0?zHipGu:zHipSh;
+  const zFtR =sSign>0?zFtSh :zFtGu,  zFtL =sSign>0?zFtGu :zFtSh;
+  const zShoC=(zShoR+zShoL)/2, zHipC=(zHipR+zHipL)/2, zHead=zShoC;   // head centred on the spine
+  const hipYaw=-(((S.hipAng??0))*Math.PI/180)*dir, shoYaw=-(((S.shoulderAng??0))*Math.PI/180)*dir;
+  const rot=(P,yaw)=>{const c=Math.cos(yaw),s2=Math.sin(yaw),dx=P[0]-hipX,dz=P[2]-aimZ;
+    return [hipX+dx*c-dz*s2, P[1], aimZ+dx*s2+dz*c];};     // body turns about the shooting line
+  const rFootX=feetX+(sSign>0?stag:0), lFootX=feetX+(sSign>0?0:stag);
+  const ankH=ankY+riseLift;                                  // heel/ankle lifts; toe stays on the floor
+  const footR=rot([rFootX,ankH,zFtR],hipYaw),             footL=rot([lFootX,ankH,zFtL],hipYaw);
+  // each foot points where the TOES aim (footAng), pivoting about its own ankle —
+  // independent of the hips, so toes can visibly fight or follow the stance
+  const footYaw=-(((S.footAng ?? S.hipAng ?? 0))*Math.PI/180)*dir;
+  const fyc=Math.cos(footYaw), fys=Math.sin(footYaw);
+  const toeR =[footR[0]+0.22*fyc, ankY, footR[2]+0.22*fys],
+        toeL =[footL[0]+0.22*fyc, ankY, footL[2]+0.22*fys];
+  // heels stick back toward the camera so the shoes stay visible from behind
+  const heelR=[footR[0]-0.065*fyc, 0.025+riseLift, footR[2]-0.065*fys],
+        heelL=[footL[0]-0.065*fyc, 0.025+riseLift, footL[2]-0.065*fys];
+  const kneeR=rot([kneeX,kneeY,zHipR*0.6+zFtR*0.4],hipYaw), kneeL=rot([kneeX,kneeY,zHipL*0.6+zFtL*0.4],hipYaw);
+  // pelvis turns AND slants with the open hips so they read as pointing left like the shoulders
+  const hipRoll=0.034*H*((S.hipAng??0)/14)*Math.sign(dir);
+  const hipRj=rot([hipX,hipY+hipRoll,zHipR],hipYaw),      hipLj=rot([hipX,hipY-hipRoll,zHipL],hipYaw);
+  // femur sockets: legs emerge from the BOTTOM of the pelvis, inboard of the hip corners
+  const legRj=rot([hipX,hipY-0.055*H+hipRoll*0.6, zHipC+(zHipR-zHipC)*0.62],hipYaw),
+        legLj=rot([hipX,hipY-0.055*H-hipRoll*0.6, zHipC+(zHipL-zHipC)*0.62],hipYaw);
+  // shooting-side shoulder hikes up as the arm extends → shoulder line slants (down on the guide side)
+  const hike=0.040*H*Math.max(0,p.raise)*Math.sign(dir);
+  const shoRj=rot([shoX,shoY+hike,zShoR],shoYaw),         shoLj=rot([shoX,shoY-hike,zShoL],shoYaw);
+  const neck =rot([shoX,shoY+H*0.05,zHead],shoYaw), headj=rot([shoX+0.015,headY,zHead],shoYaw);
+  // shooting vs guide side follows handedness
+  const shootSho=dir>0?shoRj:shoLj, guideSho=dir>0?shoLj:shoRj;
+  const ssign=dir;
+  const Lu=0.205*H, Lf=0.185*H;                              // anthropometric: upper arm LONGER than forearm
+  // follow-through relaxation: the held arm softens and drops a touch at the very end
+  const rlx=p.relax||0;
+  let hX=handX-0.02*rlx, hY=handY-0.045*rlx;
+  // anatomy guarantee: the wrist can never sit beyond shoulder + upper-arm + forearm reach, so the
+  // drawn forearm can never stretch past Lf (it used to at full extension — a too-long forearm)
+  {const dx0=hX-shootSho[0], dy0=hY-shootSho[1], dz0=ai.latBias-shootSho[2];
+   const dl=Math.hypot(dx0,dy0,dz0), mx=(Lu+Lf)*0.998;
+   if(dl>mx){const k=mx/dl; hX=shootSho[0]+dx0*k; hY=shootSho[1]+dy0*k;}}
+  const shootHand=[hX,hY,ai.latBias];                        // wrist, on the shooting line
+  // hand: cups up behind the ball pre-release → snaps down at the rim (gooseneck) after
+  const wE=Math.max(0,Math.min(1,p.wrist));
+  const cupK =[hX+0.02, hY+0.055, ai.latBias], cupT =[hX-0.005,hY+0.115, ai.latBias];
+  const snapK=[hX+0.05, hY+0.025, ai.latBias], snapT=[hX+0.045,hY-0.045, ai.latBias];   // wrist cocks to ~75° (real palmar-flexion limit); the FINGERS dangle down from the knuckles, kept short
+  const shootKnu=[lerp(cupK[0],snapK[0],wE), lerp(cupK[1],snapK[1],wE), ai.latBias];
+  const shootTip=[lerp(cupT[0],snapT[0],wE), lerp(cupT[1],snapT[1],wE), ai.latBias];
+  // shooting elbow via IK. When aligned the elbow points at the RIM (bend is forward/edge-on → arm looks
+  // straight from behind). Misalignment swings it sideways (the visible "chicken-wing" kink).
+  const e=Math.max(0,Math.min(1,p.raise));                   // arm extension 0..1
+  const poleFwd=lerp(0.35,1.0,e), poleDown=lerp(-1.0,-0.22,e);
+  const sFlare=ssign*(1-ai.quality)*2.2;                     // 0 when aligned → straight; large sideways when square
+  const shootElb=ikElbow(shootSho[0],shootSho[1],shootSho[2], hX,hY,ai.latBias, Lu,Lf,[poleFwd,poleDown,sFlare]);
+  // guide hand cradles the side of the ball, then peels off to beside the head on the follow-through
+  const gOnBall=[handX-0.05, handY-0.03, ai.latBias - sSign*0.11];
+  const gRest  =[shoX-0.03,  shoY+H*0.14, zShoGu + sSign*0.05];
+  const guideHand=[lerp(gOnBall[0],gRest[0],p.wrist),
+                   lerp(gOnBall[1],gRest[1],p.wrist),
+                   lerp(gOnBall[2],gRest[2],p.wrist)];
+  const guideElb=ikElbow(guideSho[0],guideSho[1],guideSho[2], guideHand[0],guideHand[1],guideHand[2], Lu*0.95,Lf*0.95,[0.12,-1.05,-ssign*0.3]);   // pole mostly DOWN — the guide elbow hangs at the finish instead of winging out
+  // guide fingers: pressed flat on the side of the ball, then hang relaxed after the peel
+  const gdx=ballX-guideHand[0], gdy=ballY-guideHand[1], gdz=ai.latBias-guideHand[2];
+  const gdl=Math.hypot(gdx,gdy,gdz)||1;
+  const gOn =[guideHand[0]+gdx/gdl*0.075, guideHand[1]+gdy/gdl*0.075, guideHand[2]+gdz/gdl*0.075];
+  const gOff=[guideHand[0]-0.01, guideHand[1]+0.075, guideHand[2]-sSign*0.02];  // finish: fingers UP beside the head
+  const guideTip=[lerp(gOn[0],gOff[0],wE), lerp(gOn[1],gOff[1],wE), lerp(gOn[2],gOff[2],wE)];
+  // ── torso as a 3-D slab with a waist pinch (V-taper back), twisting between hip & shoulder yaws ──
+  const td=0.058*H;
+  const fwdS=[Math.cos(shoYaw)*td,0,Math.sin(shoYaw)*td], fwdH=[Math.cos(hipYaw)*td,0,Math.sin(hipYaw)*td];
+  const wT=0.45, pinch=0.70;                                  // waist at 45% up the trunk, 70% of straight width
+  const wC=[lerp(hipX,shoX,wT), lerp(hipY,shoY,wT), lerp(zHipC,zShoC,wT)];
+  const mkW=(a,b)=>[wC[0]+(lerp(a[0],b[0],wT)-wC[0])*pinch, lerp(a[1],b[1],wT), wC[2]+(lerp(a[2],b[2],wT)-wC[2])*pinch];
+  const waistL=mkW(hipLj,shoLj), waistR=mkW(hipRj,shoRj);
+  const fwdW=[lerp(fwdH[0],fwdS[0],wT),0,lerp(fwdH[2],fwdS[2],wT)];
+  const extS=(P,s)=>[P[0]+fwdS[0]*s, P[1], P[2]+fwdS[2]*s];   // shoulder level uses shoulder yaw
+  const extH=(P,s)=>[P[0]+fwdH[0]*s, P[1], P[2]+fwdH[2]*s];   // hip level uses hip yaw → the trunk twists
+  const extW=(P,s)=>[P[0]+fwdW[0]*s, P[1], P[2]+fwdW[2]*s];
+  const torso={
+    bSL:extS(shoLj,-1), bSR:extS(shoRj,-1), bHL:extH(hipLj,-1), bHR:extH(hipRj,-1),   // back face (toward camera)
+    fSL:extS(shoLj, 1), fSR:extS(shoRj, 1), fHL:extH(hipLj, 1), fHR:extH(hipRj, 1),   // front face
+    bWL:extW(waistL,-1), bWR:extW(waistR,-1), fWL:extW(waistL,1), fWR:extW(waistR,1), // waist ring
+  };
+  // gaze: unit vector from the head to the rim (side-view eye line)
+  const gzx=RIM_X-headj[0], gzy=RIM_H-headj[1], gzl=Math.hypot(gzx,gzy)||1;
+  return {
+    feetX,ankY,
+    footL,footR,toeL,toeR,heelL,heelR,kneeL,kneeR,
+    hipL:hipLj,hipR:hipRj,hipC:[hipX,hipY,zHipC], legL:legLj, legR:legRj,
+    shoL:shoLj,shoR:shoRj,shoC:[shoX,shoY,zShoC], neck, torso, waistC:wC, waistL, waistR,
+    shootSho,guideSho,shootElb,shootHand,shootKnu,shootTip,guideElb,guideHand,guideTip,
+    gaze:[gzx/gzl,gzy/gzl],
+    head:headj, headR:H*0.064,
+    ball:[ballX,ballY,ai.latBias], relX,relY, align:ai,
+  };
+}
+
+// ── golf-app body styling: smooth 8-sided lofted-tube limbs + shaded ball joints + per-face lighting,
+//    lead(green)/trail(blue) side colouring, neutral core torso, mint head. ported from Body3D. ──
+//    project(o={x,y,z}) → {x,y (px), z (larger = farther, for the painter sort), s (px per world-metre)}
+//    or null when the point is behind the camera.
+function drawFigure3D(ctx, g, project){
+  const H=S.height/100, rs=(H/1.85)*bodyBuild();
+  const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y,z:a.z-b.z}), add=(a,b)=>({x:a.x+b.x,y:a.y+b.y,z:a.z+b.z});
+  const scl=(a,s)=>({x:a.x*s,y:a.y*s,z:a.z*s}), dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
+  const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+  const len=a=>Math.hypot(a.x,a.y,a.z), norm=a=>{const l=len(a)||1;return scl(a,1/l);};
+  const V=(x,y,z)=>({x,y,z}), mid=(a,b)=>scl(add(a,b),0.5), o=a=>({x:a[0],y:a[1],z:a[2]});
+  const L3=norm(V(-0.5,0.85,0.55)), LS={x:-0.55,y:-0.83};
+  const LEAD=[86,202,138], TRAIL=[96,178,236], CORE=[168,192,186], SKIN=[150,235,195], JCOL=[234,245,240];
+  const rgb=c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+  const dep=P=>{const q=project(P);return q?q.z:-1e9;};
+  // depth cue (the golf app's atmospheric tint): parts farther from the camera dim toward 76%,
+  // which is most of what makes the figure read as round instead of flat
+  const refs=[g.head,g.shoC,g.hipC,g.footL,g.footR,g.shootHand,g.guideHand,g.kneeL,g.kneeR]
+    .map(j=>dep(o(j))).filter(d=>d>-1e8);
+  const dmin=Math.min(...refs), dmax=Math.max(...refs);
+  const tintK=d=>1-0.24*Math.max(0,Math.min(1,(d-dmin)/((dmax-dmin)||1e-6)));
+  const shade=(c,m,d)=>c.map(x=>Math.min(255,x*m*(d===undefined?1:tintK(d))));
+  function ball3d(P,r,col){const q=project(P);if(!q)return;const R=Math.max(0.5,r*q.s),x=q.x,y=q.y;
+    const base=col.map(c=>c*tintK(q.z));
+    const hi=base.map(c=>Math.min(255,c*1.5)),lo=base.map(c=>c*0.5);
+    const gd=ctx.createRadialGradient(x+LS.x*R*.45,y+LS.y*R*.45,R*.12,x,y,R);
+    gd.addColorStop(0,rgb(hi));gd.addColorStop(.55,rgb(base));gd.addColorStop(1,rgb(lo));
+    ctx.fillStyle=gd;ctx.beginPath();ctx.arc(x,y,R,0,7);ctx.fill();}
+  // generic lofted surface: rings [{C,pts[]}] with per-face normal·light shading + end caps
+  function lofted(rings,col){
+    const N=rings[0].pts.length,faces=[];
+    for(let r=0;r<rings.length-1;r++){const A=rings[r].pts,B=rings[r+1].pts,ax=mid(rings[r].C,rings[r+1].C);
+      for(let k=0;k<N;k++){const j=(k+1)%N,v=[A[k],A[j],B[j],B[k]];
+        faces.push({v,c:scl(add(add(add(v[0],v[1]),v[2]),v[3]),0.25),ax});}}
+    const r0=rings[0],rL=rings[rings.length-1];
+    faces.push({v:r0.pts.slice().reverse(),c:r0.C,ax:add(r0.C,scl(norm(sub(r0.C,rings[1].C)),0.03))});
+    faces.push({v:rL.pts,c:rL.C,ax:add(rL.C,scl(norm(sub(rL.C,rings[rings.length-2].C)),0.03))});
+    faces.forEach(fc=>fc.d=dep(fc.c));
+    faces.sort((a,b)=>b.d-a.d);
+    faces.forEach(fc=>{const ps=fc.v.map(project);if(ps.some(p=>!p))return;
+      let nrm=norm(cross(sub(fc.v[1],fc.v[0]),sub(fc.v[fc.v.length-1],fc.v[0])));
+      if(dot(nrm,sub(fc.c,fc.ax))<0)nrm=scl(nrm,-1);
+      const c=shade(col,0.62+0.5*Math.max(0,dot(nrm,L3)),fc.d);
+      ctx.fillStyle=rgb(c);ctx.strokeStyle=rgb(c.map(x=>x*0.82));ctx.lineWidth=0.5;ctx.lineJoin="round";
+      ctx.beginPath();ps.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();});}
+  function limb(a,b,ra,rb,col){
+    const dir=norm(sub(b,a));let u=cross(dir,V(0,1,0));if(len(u)<0.08)u=cross(dir,V(1,0,0));u=norm(u);
+    const w=norm(cross(dir,u)),TAU=Math.PI*2,ring=(C,r)=>{const pts=[];for(let k=0;k<8;k++){const t=k*TAU/8;
+      pts.push(add(C,add(scl(u,r*Math.cos(t)),scl(w,r*Math.sin(t)))));}return{C,pts};};
+    lofted([ring(a,ra),ring(b,rb)],col);}
+  function trunk(){
+    // 4 elliptical rings (hips → waist pinch → wide chest → shoulders) whose lateral axis twists from
+    // the hip line to the shoulder line — the golf torso's V-taper, with the coil visible as it turns
+    const spine=norm(sub(o(g.shoC),o(g.hipC))),TAU=Math.PI*2;
+    const lerp3o=(a,b,t)=>add(a,scl(sub(b,a),t));
+    const hipDir=norm(sub(o(g.hipR),o(g.hipL))), shoDir=norm(sub(o(g.shoR),o(g.shoL)));
+    const mk=(L,R,t,wf,hd)=>{const C=mid(L,R);let u=norm(lerp3o(hipDir,shoDir,t));
+      let f=norm(cross(spine,u));u=norm(cross(f,spine));
+      const hw=len(sub(R,L))/2*wf,pts=[];
+      for(let k=0;k<8;k++){const a=k*TAU/8;pts.push(add(add(C,scl(u,hw*Math.cos(a))),scl(f,hd*Math.sin(a))));}
+      return{C,pts};};
+    const chestL=lerp3o(o(g.waistL),o(g.shoL),0.62), chestR=lerp3o(o(g.waistR),o(g.shoR),0.62);
+    lofted([mk(o(g.hipL),o(g.hipR),0,1.0,0.095*rs),
+            mk(o(g.waistL),o(g.waistR),0.45,0.96,0.080*rs),
+            mk(chestL,chestR,0.78,1.10,0.115*rs),
+            mk(o(g.shoL),o(g.shoR),1,1.0,0.100*rs)],CORE);}
+  function foot(A,toe,col){
+    const G=0.012;let dir=sub(toe,A);dir=V(dir.x,0,dir.z);dir=norm(dir);
+    const side=scl(norm(cross(dir,V(0,1,0))),0.045),back=scl(dir,-0.048);
+    const heelBot=Math.max(G,A.y-0.10),heelTop=Math.max(heelBot+0.028,A.y-0.012),toeBot=G,toeTop=G+0.032;
+    const hp=(h,s)=>add(add(V(A.x,h,A.z),back),s),tp=(h,s)=>add(V(toe.x,h,toe.z),s);
+    const sL=side,sR=scl(side,-1),sLt=scl(side,.78),sRt=scl(side,-.78);
+    const bHL=hp(heelBot,sL),bHR=hp(heelBot,sR),tHL=hp(heelTop,sL),tHR=hp(heelTop,sR);
+    const bTL=tp(toeBot,sLt),bTR=tp(toeBot,sRt),tTL=tp(toeTop,sLt),tTR=tp(toeTop,sRt);
+    const faces=[{v:[tHL,tHR,tTR,tTL],l:1.12},{v:[bHL,bTL,tTL,tHL],l:.78},{v:[bHR,bTR,tTR,tHR],l:.78},
+      {v:[bHL,bHR,tHR,tHL],l:.55},{v:[bTL,bTR,tTR,tTL],l:.95},{v:[bHL,bHR,bTR,bTL],l:.5}];
+    faces.forEach(f=>{const ps=f.v.map(project);f.ps=ps;f.d=ps.some(p=>!p)?-1e9:(ps[0].z+ps[1].z+ps[2].z+ps[3].z)/4;});
+    faces.sort((a,b)=>b.d-a.d);
+    faces.forEach(f=>{if(f.ps.some(p=>!p))return;const c=shade(col,f.l,f.d);ctx.fillStyle=rgb(c);
+      ctx.strokeStyle=rgb(c.map(x=>x*0.8));ctx.lineWidth=0.6;ctx.lineJoin="round";
+      ctx.beginPath();f.ps.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();});}
+  // shooting arm = trail(blue) for a righty, guide = lead(green); swap for a lefty
+  const shC=S.hand==="L"?LEAD:TRAIL, gdC=S.hand==="L"?TRAIL:LEAD;
+  const parts=[];
+  const push=(P,fn)=>parts.push({d:dep(P),draw:fn});
+  push(mid(o(g.hipC),o(g.shoC)), trunk);
+  push(mid(o(g.shoC),o(g.head)), ()=>limb(o(g.shoC),o(g.neck),0.038*rs,0.032*rs,CORE));
+  push(o(g.head), ()=>ball3d(o(g.head),g.headR*1.12,SKIN));
+  push(mid(o(g.guideSho),o(g.guideElb)), ()=>limb(o(g.guideSho),o(g.guideElb),0.044*rs,0.033*rs,gdC));
+  push(mid(o(g.guideElb),o(g.guideHand)),()=>limb(o(g.guideElb),o(g.guideHand),0.033*rs,0.025*rs,gdC));
+  push(mid(o(g.shootSho),o(g.shootElb)), ()=>limb(o(g.shootSho),o(g.shootElb),0.044*rs,0.033*rs,shC));
+  push(mid(o(g.shootElb),o(g.shootHand)),()=>limb(o(g.shootElb),o(g.shootHand),0.033*rs,0.025*rs,shC));
+  push(mid(o(g.legL),o(g.kneeL)), ()=>limb(o(g.legL),o(g.kneeL),0.075*rs,0.052*rs,LEAD));
+  push(mid(o(g.kneeL),o(g.footL)),()=>limb(o(g.kneeL),o(g.footL),0.050*rs,0.035*rs,LEAD));
+  push(o(g.footL), ()=>foot(o(g.footL),o(g.toeL),LEAD));
+  push(mid(o(g.legR),o(g.kneeR)), ()=>limb(o(g.legR),o(g.kneeR),0.075*rs,0.052*rs,TRAIL));
+  push(mid(o(g.kneeR),o(g.footR)),()=>limb(o(g.kneeR),o(g.footR),0.050*rs,0.035*rs,TRAIL));
+  push(o(g.footR), ()=>foot(o(g.footR),o(g.toeR),TRAIL));
+  // hands (skin tone, like the golf grip box) + colour-matched joint balls incl. ankles
+  const HAND=[224,206,172];
+  const lerpV=(a,b,t)=>add(a,scl(sub(b,a),t));
+  // mitten hand off the rig's wrist→knuckle→fingertip chain: a boxy palm + a tapered (trapezoid)
+  // finger slab, flat and wide (the fingers-as-one-mass spread laterally, thin front-to-back). Since
+  // the chain cups behind the ball on the way up and snaps into the gooseneck after release, the
+  // whole mitten cups the ball at the set and hangs down, palm-out, at the finish (Curry's follow-through).
+  function mitten(wr,kn,tp,thick,pwW,knW,tpW){
+    const axisOf=(a,b)=>{const d=norm(sub(b,a));
+      let lat=sub(V(0,0,1),scl(d,dot(V(0,0,1),d))); if(len(lat)<0.08)lat=cross(d,V(1,0,0)); lat=norm(lat);
+      return {d,lat,fwd:norm(cross(d,lat))};};
+    const slab=(a,b,ha,hb,ax)=>{const ring=(C,h)=>({C,pts:[
+        add(add(C,scl(ax.lat,h)),scl(ax.fwd,thick)),  add(add(C,scl(ax.lat,-h)),scl(ax.fwd,thick)),
+        add(add(C,scl(ax.lat,-h)),scl(ax.fwd,-thick)),add(add(C,scl(ax.lat,h)),scl(ax.fwd,-thick))]});
+      lofted([ring(a,ha),ring(b,hb)],HAND);};
+    const fa=axisOf(kn,tp);
+    slab(wr,kn,pwW,knW,axisOf(wr,kn));   // palm: roughly square
+    slab(kn,tp,knW,tpW,fa);              // fingers: trapezoid tapering toward the tips
+    return fa;
+  }
+  push(o(g.shootHand),()=>{
+    const wr=o(g.shootHand),kn=o(g.shootKnu),tp=o(g.shootTip);
+    const fa=mitten(wr,kn,tp,0.013*rs,0.028*rs,0.034*rs,0.026*rs);
+    const tb=lerpV(wr,kn,0.30), th=add(tb,scl(fa.lat,-0.058*rs));      // thumb stub off the radial side
+    limb(tb,th,0.014*rs,0.010*rs,HAND);});
+  push(o(g.guideHand),()=>{
+    const wr=o(g.guideHand),tp=o(g.guideTip),kn=lerpV(wr,tp,0.42);
+    mitten(wr,kn,tp,0.011*rs,0.024*rs,0.028*rs,0.021*rs);});
+  [[g.guideSho,gdC,0.050],[g.shootSho,shC,0.050],[g.guideElb,gdC,0.036],[g.shootElb,shC,0.036],
+   [g.legL,LEAD,0.062],[g.legR,TRAIL,0.062],[g.kneeL,LEAD,0.054],[g.kneeR,TRAIL,0.054],
+   [g.footL,LEAD,0.040],[g.footR,TRAIL,0.040]]
+   .forEach(j=>push(o(j[0]),()=>ball3d(o(j[0]),j[2]*rs,j[1])));
+  // contact shadow on the floor, drawn under everything
+  {const fcp=mid(o(g.footL),o(g.footR)),q=project(V(fcp.x,0.002,fcp.z));
+   if(q){ctx.save();ctx.fillStyle="rgba(0,0,0,0.30)";ctx.beginPath();
+     ctx.ellipse(q.x,q.y,0.34*q.s,0.10*q.s,0,0,7);ctx.fill();ctx.restore();}}
+  parts.sort((a,b)=>b.d-a.d);
+  parts.forEach(p=>p.draw());
+  // pale internal pivots on top — always-visible joints
+  [g.guideSho,g.shootSho,g.guideElb,g.shootElb,g.hipL,g.hipR,g.kneeL,g.kneeR]
+    .map(j=>({p:o(j),q:project(o(j))})).filter(x=>x.q).sort((a,b)=>b.q.z-a.q.z)
+    .forEach(x=>ball3d(x.p,0.020*rs,JCOL));
+}
+// side-view shooter — golf-styled figure through an orthographic side camera (depth = −z)
+function drawShooterSide(ctx,X,Y,sc,p,g){
+  drawFigure3D(ctx,g,P=>({x:X(P.x),y:Y(P.y),z:-P.z,s:sc}));
+}
+
+// ───────────────── behind-the-shooter POV (orbitable perspective) ─────────────────
+// drag the view to orbit the camera around the shooter; double-click resets to straight-behind
+let orbitAz=0, orbitEl=0.12, _behindInit=false;
+function initBehindOrbit(c){
+  if(_behindInit) return; _behindInit=true;
+  let drag=false, px=0, py=0;
+  c.style.cursor="grab"; c.style.touchAction="none";
+  c.addEventListener("pointerdown",e=>{drag=true;px=e.clientX;py=e.clientY;c.style.cursor="grabbing";try{c.setPointerCapture(e.pointerId);}catch(_){}});
+  c.addEventListener("pointermove",e=>{if(!drag)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;
+    orbitAz+=dx*0.01; orbitEl=Math.max(-0.20,Math.min(0.95,orbitEl-dy*0.007)); drawBehind(1);});
+  const end=()=>{drag=false;c.style.cursor="grab";};
+  c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
+  c.addEventListener("dblclick",()=>{orbitAz=0;orbitEl=0.12;drawBehind(1);});
+}
+function drawBehind(progress){
+  const c=document.getElementById("behind");const {ctx,w,h}=fit(c,420);
+  ctx.clearRect(0,0,w,h);
+  // cool 3-D "stage" backdrop so the golf-styled figure reads (like the golf app's viewport)
+  const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,"#0e1a24");bg.addColorStop(1,"#121f16");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  if(!last) return;
+  initBehindOrbit(c);
+  const p=poseParams(progress), g=poseGeom(p);
+  // orbit camera: spherical position around the shooter (az=0,el≈0.12 → the original straight-behind view)
+  const pivot=[g.feetX,1.18,0], dist=3.7;
+  const ce=Math.cos(orbitEl),se=Math.sin(orbitEl),ca=Math.cos(orbitAz),sa=Math.sin(orbitAz);
+  const dir=[-ce*ca, se, -ce*sa];                                    // pivot → camera
+  const cam=[pivot[0]+dist*dir[0], pivot[1]+dist*dir[1], pivot[2]+dist*dir[2]];
+  const fwd=V3.norm([pivot[0]-cam[0],pivot[1]-cam[1],pivot[2]-cam[2]]);
+  const right=V3.norm(V3.cross(fwd,[0,1,0])), up=V3.cross(right,fwd);
+  const F=w*0.56, cx=w/2, horizon=h*0.46;
+  const camDepth=P=>(P[0]-cam[0])*fwd[0]+(P[1]-cam[1])*fwd[1]+(P[2]-cam[2])*fwd[2];   // larger = farther
+  const proj=P=>{const vx=P[0]-cam[0],vy=P[1]-cam[1],vz=P[2]-cam[2];
+    const d=vx*fwd[0]+vy*fwd[1]+vz*fwd[2]; if(d<0.05) return null; const s=F/d;
+    return [cx+(vx*right[0]+vy*right[1]+vz*right[2])*s, horizon-(vx*up[0]+vy*up[1]+vz*up[2])*s, s];};
+
+  // floor: free-throw lane rails converging to the basket (depth cue)
+  const laneZ=1.83, laneFar=RIM_X+0.35, laneNear=g.feetX-0.2;
+  ctx.strokeStyle="#2c1d12";ctx.lineWidth=2;
+  [-laneZ,laneZ].forEach(z=>{const a=proj([laneNear,0,z]),b=proj([laneFar,0,z]);
+    if(a&&b){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}});
+  // free-throw line + a couple lane stripes across
+  ctx.strokeStyle="#3a2817";
+  [laneNear+0.1, (laneNear+laneFar)/2, laneFar].forEach(xx=>{
+    const a=proj([xx,0,-laneZ]),b=proj([xx,0,laneZ]);
+    if(a&&b){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();}});
+
+  // backboard
+  const bbX=RIM_X+RIM_R+0.15;
+  const bb=[proj([bbX,3.95,-0.9]),proj([bbX,3.95,0.9]),proj([bbX,2.90,0.9]),proj([bbX,2.90,-0.9])];
+  if(bb.every(Boolean)){ctx.fillStyle="rgba(40,28,16,.85)";ctx.strokeStyle="#6b4a2a";ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(bb[0][0],bb[0][1]);bb.slice(1).forEach(q=>ctx.lineTo(q[0],q[1]));
+    ctx.closePath();ctx.fill();ctx.stroke();
+    // small shooter's square
+    const sq=[proj([bbX,3.35,-0.30]),proj([bbX,3.35,0.30]),proj([bbX,3.05,0.30]),proj([bbX,3.05,-0.30])];
+    if(sq.every(Boolean)){ctx.strokeStyle="#8a6238";ctx.lineWidth=1.5;ctx.beginPath();
+      ctx.moveTo(sq[0][0],sq[0][1]);sq.slice(1).forEach(q=>ctx.lineTo(q[0],q[1]));ctx.closePath();ctx.stroke();}}
+
+  // rim as a foreshortened ellipse + net
+  const rimPts=[];for(let i=0;i<=40;i++){const a=i/40*2*Math.PI;
+    rimPts.push(proj([RIM_X+RIM_R*Math.cos(a),RIM_H,RIM_R*Math.sin(a)]));}
+  ctx.strokeStyle="#ff8a3d";ctx.lineWidth=4;ctx.beginPath();
+  rimPts.forEach((q,i)=>q&&((i?ctx.lineTo:ctx.moveTo).call(ctx,q[0],q[1])));ctx.closePath();ctx.stroke();
+  // net strands
+  ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=1;
+  for(let i=0;i<16;i++){const a=i/16*2*Math.PI;
+    const top=proj([RIM_X+RIM_R*Math.cos(a),RIM_H,RIM_R*Math.sin(a)]);
+    const bot=proj([RIM_X+RIM_R*0.45*Math.cos(a),RIM_H-0.42,RIM_R*0.45*Math.sin(a)]);
+    if(top&&bot){ctx.beginPath();ctx.moveTo(top[0],top[1]);ctx.lineTo(bot[0],bot[1]);ctx.stroke();}}
+
+  // ideal arc, projected down the centre line (z=0) — shows the rise/feel of the arc
+  const fullPts=last.ideal.pts;let drawN=fullPts.length;
+  if(last.idc.make>0 && last.ideal.crossIdx>0){drawN=last.ideal.crossIdx;
+    while(drawN<fullPts.length && fullPts[drawN][1]>RIM_H-0.42) drawN++;drawN=Math.min(fullPts.length,drawN+1);}
+  ctx.setLineDash([5,5]);ctx.strokeStyle="rgba(255,138,61,.40)";ctx.lineWidth=1.5;ctx.beginPath();
+  let started=false;
+  for(let i=0;i<drawN;i++){const q=proj([fullPts[i][0],fullPts[i][1],0]);if(!q)continue;
+    (started?ctx.lineTo:ctx.moveTo).call(ctx,q[0],q[1]);started=true;}
+  ctx.stroke();ctx.setLineDash([]);
+
+  // shooter, seen from behind — golf-styled figure (perspective camera; depth = distance down the lane)
+  drawFigure3D(ctx,g,P=>{const r=proj([P.x,P.y,P.z]);return r?{x:r[0],y:r[1],z:camDepth([P.x,P.y,P.z]),s:r[2]}:null;});
+
+  // elbow-to-rim alignment guide — a good shot keeps the shooting elbow under the ball, pointed at the
+  // rim. the dashed line runs from the elbow to the rim; when it lies along the forearm the elbow is on
+  // target (green); a flared elbow sits off to the side and the line crosses the body (red).
+  if(p.raise>0.15){
+    const e=proj(g.shootElb), rc=proj([RIM_X,RIM_H,0]), q=g.align.quality;
+    if(e&&rc){
+      const col=q>0.80?"57,217,138":q>0.55?"255,138,61":"240,85,107";
+      ctx.save();ctx.setLineDash([4,4]);ctx.lineWidth=1.6;ctx.strokeStyle=`rgba(${col},.72)`;
+      ctx.beginPath();ctx.moveTo(e[0],e[1]);ctx.lineTo(rc[0],rc[1]);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=`rgba(${col},.95)`;ctx.beginPath();ctx.arc(e[0],e[1],4,0,7);ctx.fill();
+      ctx.font="11px ui-sans-serif,system-ui,sans-serif";ctx.textAlign="left";ctx.textBaseline="middle";
+      ctx.fillText(q>0.80?"elbow → rim ✓":q>0.55?"elbow → rim · slightly off":"elbow flaring out",e[0]+8,e[1]);
+      ctx.restore();
+    }
+  }
+
+  // ball: in the hands pre-release, then flying away down the centre line
+  let bp,rot=0;
+  if(progress<FLIGHT_START){ bp=proj(g.ball); }
+  else{const ft=(progress-FLIGHT_START)/(1-FLIGHT_START);
+    const idx=Math.min(drawN-1,Math.floor(ft*(drawN-1)));
+    bp=proj([fullPts[idx][0],fullPts[idx][1],0]);
+    rot=2*Math.PI*S.spin*idx*0.003;}
+  if(bp){const r=BALL_R*bp[2];
+    ctx.fillStyle="#ff8a3d";ctx.beginPath();ctx.arc(bp[0],bp[1],r,0,7);ctx.fill();
+    ctx.strokeStyle="#1c140d";ctx.lineWidth=Math.max(1,r*0.12);
+    ctx.beginPath();ctx.arc(bp[0],bp[1],r,0,7);ctx.stroke();
+    // spin axis is horizontal from back-on: the meridian holds still, the equator seam tumbles
+    ctx.beginPath();ctx.moveTo(bp[0],bp[1]-r);ctx.lineTo(bp[0],bp[1]+r);ctx.stroke();
+    const sy=Math.sin(rot), mag=Math.max(0.04,Math.abs(sy));
+    ctx.save();ctx.translate(bp[0],bp[1]);ctx.scale(1,sy<0?-mag:mag);
+    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.restore();ctx.stroke();}
+  // viewport labels, golf-style: shot phase top-left, form badge top-right
+  const phase=progress<0.14?"Gather":progress<0.36?"Rise to set":progress<0.52?"Release":"Follow-through";
+  ctx.font="600 13px -apple-system,BlinkMacSystemFont,sans-serif";ctx.textBaseline="top";
+  ctx.textAlign="left"; ctx.fillStyle="rgba(240,236,228,.92)"; ctx.fillText(phase,14,12);
+  ctx.textAlign="right"; ctx.fillStyle="rgba(255,170,110,.85)";
+  ctx.fillText(preset.toUpperCase()+(S.style==="catapult"?" · overhead catapult":""),w-14,12);
+  ctx.textAlign="left"; ctx.textBaseline="alphabetic";
+}
+
+// ───────────────── rim's-eye dispersion view ─────────────────
+function drawRim(){
+  const c=document.getElementById("rim");const {ctx,w,h}=fit(c,300);
+  ctx.clearRect(0,0,w,h);
+  if(!last) return;
+  const cx=w/2, cy=h/2-6;
+  const scale=Math.min(w,h)*0.40/RIM_R;              // m→px so rim ~80% of box
+  // rim ring
+  ctx.strokeStyle="#ff8a3d";ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(cx,cy,RIM_R*scale,0,7);ctx.stroke();
+  // clean (swish) window
+  ctx.setLineDash([4,4]);ctx.strokeStyle="rgba(57,217,138,.6)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(cx,cy,CLEAN*scale,0,7);ctx.stroke();ctx.setLineDash([]);
+  // ball footprint for scale
+  ctx.strokeStyle="rgba(255,255,255,.25)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(cx,cy,BALL_R*scale,0,7);ctx.stroke();
+  // samples: x=lateral, y=depth (long = away from shooter = up)
+  for(const s of last.mc.samples){
+    const px=cx+s.lat*scale, py=cy-s.depth*scale;
+    ctx.fillStyle = s.make>=1?"rgba(57,217,138,.9)" : s.make>0?"rgba(240,180,41,.85)":"rgba(240,85,107,.7)";
+    ctx.beginPath();ctx.arc(px,py,2.4,0,7);ctx.fill();
+  }
+  ctx.fillStyle="var(--muted)";ctx.fillStyle="#a08a76";ctx.font="11px -apple-system,sans-serif";
+  ctx.textAlign="center";ctx.fillText("long",cx,18);ctx.fillText("short",cx,h-8);
+  ctx.textAlign="left";ctx.fillText("left",6,cy+4);
+  ctx.textAlign="right";ctx.fillText("right",w-6,cy+4);
+}
+
+// ───────────────── coaching read view ─────────────────
+function drawCoach(){
+  const c=document.getElementById("coach");const {ctx,w,h}=fit(c,300);
+  ctx.clearRect(0,0,w,h);
+  if(!last) return;
+  ctx.font="12.5px -apple-system,sans-serif";
+  const lines=coachLines();
+  let y=26;
+  for(const ln of lines){
+    ctx.fillStyle=ln.c||"#f3ece4";
+    ctx.fillText(ln.t, 16, y);
+    y+=24;
+  }
+}
+function coachLines(){
+  const out=[];
+  const e=last.entryDeg, pct=last.mc.pct, ang=S.angle;
+  out.push({t:`Make %: ${pct.toFixed(0)}%`, c:"#ff8a3d"});
+  const ai=alignInfo(S), sideTxt=S.hand==="L"?"right":"left";
+  if(ai.quality<0.6) out.push({t:`• Elbow flares — turn shoulders ~${OPT_OPEN}°`, c:"#f0556b"});
+  if(ai.quality<0.6) out.push({t:`  (open to the ${sideTxt}) to line it up.`, c:"#f0556b"});
+  else if(ai.quality>0.85 && ai.tuck<0.25) out.push({t:"• Shoulders square the elbow to the rim. ✓", c:"#39d98a"});
+  if(ai.tuck>=0.25 && ai.naturalFlare>6){
+    out.push({t:"• You're muscling the elbow in — works, but", c:"#f0b429"});
+    out.push({t:`  costs wobble. Opening shoulders ~${OPT_OPEN}° is free.`, c:"#f0b429"});
+  }
+  if(ai.twist>=12) out.push({t:`• Hips & shoulders are ${ai.twist.toFixed(0)}° apart —`, c:"#f0b429"});
+  if(ai.twist>=12) out.push({t:"  the torso twist is hard to repeat.", c:"#f0b429"});
+  if(ai.fight>=14) out.push({t:`• Toes point ${ai.fight.toFixed(0)}° off the hips — the`, c:"#f0b429"});
+  if(ai.fight>=14) out.push({t:"  knees fight the stance; line them up.", c:"#f0b429"});
+  if((S.seamAlign??70)<50) out.push({t:"• Line up the seams every time — free", c:"#f0b429"});
+  if((S.seamAlign??70)<50) out.push({t:"  consistency you're leaving on the table.", c:"#f0b429"});
+  if((S.fingerPos??55)<20||(S.fingerPos??55)>90) out.push({t:"• Last touch should push through the ball's", c:"#f0b429"});
+  if((S.fingerPos??55)<20||(S.fingerPos??55)>90) out.push({t:"  middle — center the index–middle area.", c:"#f0b429"});
+  if(Math.abs(S.footAim||0)>=6) out.push({t:`• Shooting foot ${Math.abs(S.footAim)}cm off rim center`, c:"#f0b429"});
+  if(Math.abs(S.footAim||0)>=6) out.push({t:"  → base isn't squared; shots drift.", c:"#f0b429"});
+  if(last.ideal.cross===null) out.push({t:"• Too short — add power or arc.", c:"#f0556b"});
+  if(e>0 && e<38) out.push({t:`• Entry ${e.toFixed(0)}° is flat — the ball barely`, c:"#f0b429"});
+  if(e>0 && e<38) out.push({t:"  fits. Raise the arc toward 50–55°.", c:"#f0b429"});
+  if(e>=43 && e<=52) out.push({t:`• Entry ${e.toFixed(0)}° is in the sweet spot.`, c:"#39d98a"});
+  if(e>55) out.push({t:`• Entry ${e.toFixed(0)}° is steep — forgiving, but`, c:"#a08a76"});
+  if(e>55) out.push({t:"  needs precise power.", c:"#a08a76"});
+  if(S.spin<1.5) out.push({t:"• Low backspin — add wrist snap for a", c:"#f0b429"});
+  if(S.spin<1.5) out.push({t:"  softer, more forgiving touch.", c:"#f0b429"});
+  if(S.sync>=80) out.push({t:"• One-motion rhythm — kinetic chain synced.", c:"#39d98a"});
+  else if(S.sync<45 && S.dip>=55){ out.push({t:"• Deep dip but a two-motion pause — let it", c:"#f0b429"});
+    out.push({t:"  flow into one motion.", c:"#f0b429"}); }
+  else if(S.sync<40) out.push({t:"• Two-motion hitch adds timing variance.", c:"#f0b429"});
+  if(S.form<55) out.push({t:"• Inconsistent form is the #1 limiter —", c:"#f0556b"});
+  if(S.form<55) out.push({t:"  groove a repeatable motion.", c:"#f0556b"});
+  if(S.form>=85) out.push({t:"• Elite consistency — tight dispersion.", c:"#39d98a"});
+  if(out.length<3){ out.push({t:"• Dialed in. Try nudging arc to test", c:"#a08a76"});
+                    out.push({t:"  the margin for error.", c:"#a08a76"}); }
+  return out.slice(0,9);
+}
+
+// ───────────────── cue card: translate the current mechanics into swing thoughts ─────────────────
+function clockFor(deg,hand){
+  if(deg>=10) return hand==="L"?"1 o'clock":"11 o'clock";
+  if(deg>=4)  return hand==="L"?"12:30":"11:30";
+  if(deg<=-4) return hand==="L"?"11:30":"12:30";
+  return "12 o'clock";
+}
+// ───────────────── shooter's view — hands on the ball ─────────────────
+// realistic leather basketball, rendered once to an offscreen canvas and cached by size
+let _ballTex=null,_ballTexR=0;
+function ballTexture(R){
+  if(_ballTex&&Math.abs(_ballTexR-R)<0.5) return _ballTex;
+  const s=Math.ceil(R*2+4), oc=document.createElement("canvas"); oc.width=oc.height=s;
+  const o=oc.getContext("2d"), C=s/2;
+  // base leather gradient (lit from upper-left)
+  const bg=o.createRadialGradient(C-R*0.34,C-R*0.38,R*0.08, C,C,R*1.05);
+  bg.addColorStop(0,"#f0a256");bg.addColorStop(0.5,"#dd8038");bg.addColorStop(0.84,"#c06a28");bg.addColorStop(1,"#9a5019");
+  o.fillStyle=bg;o.beginPath();o.arc(C,C,R,0,7);o.fill();
+  // dense pebble grain — seeded so the texture is identical every build (no shimmer); kept subtle
+  o.save();o.beginPath();o.arc(C,C,R*0.99,0,7);o.clip();
+  srand(0x9E3779B9);
+  const N=Math.min(7000,Math.round(R*R*0.62));
+  for(let i=0;i<N;i++){
+    const rr=R*Math.sqrt(rand()), th=rand()*6.2832;
+    const ux=Math.cos(th), uy=Math.sin(th), px=C+rr*ux, py=C+rr*uy;
+    const z=Math.sqrt(Math.max(0.015,1-(rr/R)*(rr/R)));        // sphere foreshorten
+    const sz=Math.max(0.5,R*0.006*(0.5+0.7*z));
+    o.fillStyle=`rgba(60,28,8,${0.14*(1.05-0.5*z)})`;          // each bump's shadow (down-right)
+    o.beginPath();o.arc(px+sz*0.36,py+sz*0.4,sz,0,7);o.fill();
+    const nl=Math.max(0,(-ux*0.6-uy*0.7))*(1-z)+z*0.9;         // bump top catching the light
+    o.fillStyle=`rgba(255,214,160,${0.16*z*nl})`;
+    o.beginPath();o.arc(px-sz*0.3,py-sz*0.34,sz*0.66,0,7);o.fill();
+  }
+  o.restore(); _rng=null;
+  // gentle rim darkening for roundness
+  o.save();o.beginPath();o.arc(C,C,R,0,7);o.clip();
+  const rg=o.createRadialGradient(C,C,R*0.62,C,C,R);
+  rg.addColorStop(0,"rgba(0,0,0,0)");rg.addColorStop(1,"rgba(70,32,8,.42)");
+  o.fillStyle=rg;o.beginPath();o.arc(C,C,R,0,7);o.fill();
+  // soft specular sheen, upper-left
+  const sg=o.createRadialGradient(C-R*0.4,C-R*0.44,0, C-R*0.4,C-R*0.44,R*0.85);
+  sg.addColorStop(0,"rgba(255,228,185,.32)");sg.addColorStop(1,"rgba(255,228,185,0)");
+  o.fillStyle=sg;o.fillRect(0,0,s,s);o.restore();
+  _ballTex=oc;_ballTexR=R;return oc;
+}
+function drawHands(){
+  const c=document.getElementById("hands"); if(!c) return;
+  const {ctx,w,h}=fit(c,300);
+  ctx.clearRect(0,0,w,h);
+  const cx=w/2, cy=h*0.5, R=Math.min(w*0.44,h*0.44);
+  // orange pebbled-leather ball underneath
+  const tex=ballTexture(R);
+  ctx.drawImage(tex, cx-tex.width/2, cy-tex.height/2);
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.clip();
+  // ── seams matched to the reference photo (panel-facing): straight equator + two channel seams
+  //    that bow out at the equator and curve back toward the poles. drawn as real great circles on
+  //    a sphere and projected, so the curvature foreshortens correctly (no flat 2D fakery). ──
+  const AX=0.0, AY=0.0;                                     // straight-on view: equator stays level
+  const ca=Math.cos(AX),sa=Math.sin(AX),cb=Math.cos(AY),sb=Math.sin(AY);
+  const rot=(x,y,z)=>{const y1=y*ca-z*sa, z1=y*sa+z*ca; return [x*cb+z1*sb, y1, -x*sb+z1*cb];};
+  const norm=(v)=>{const m=Math.hypot(v[0],v[1],v[2]);return [v[0]/m,v[1]/m,v[2]/m];};
+  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  // a curve drawn on the sphere by intersecting it with a plane {p · n = d}; d=0 → great circle
+  // (the equator), d≠0 → a small circle lifted off-centre, which stays clear of the equator all the
+  // way to the silhouette instead of pinching into it. visible front arc only (z≥0 → vanish at horizon).
+  // the seam groove's visible width foreshortens to NOTHING at the horizon (you see it edge-on
+  // there), so each seam is a tapered ribbon — full width facing the camera, melting to a point
+  // exactly on the silhouette — instead of a constant-width stroke that visibly just stops.
+  // the visible arc [φ−T, φ+T] is solved analytically from z(t)=cz+amp·cos(t−φ) > 0.
+  const seamRibbon=(n,d,flipY,wide)=>{
+    n=norm(n);
+    const rho=Math.sqrt(Math.max(0,1-d*d));
+    let u=Math.abs(n[1])<0.9?cross(n,[0,1,0]):cross(n,[1,0,0]); u=norm(u);
+    const v=cross(n,u), C=[n[0]*d,n[1]*d,n[2]*d];
+    const ur=rot(u[0],u[1],u[2]), vr=rot(v[0],v[1],v[2]), cr=rot(C[0],C[1],C[2]);
+    const A=rho*ur[2], B=rho*vr[2], amp=Math.hypot(A,B), phi=Math.atan2(B,A);
+    let T;
+    if(amp<1e-6){ if(cr[2]<=0) return; T=Math.PI; }
+    else{ const q=-cr[2]/amp; if(q>=1) return; T=Math.acos(Math.max(-1,q)); }
+    const zmax=cr[2]+amp, baseW=Math.max(2.4,R*(wide?0.05:0.046));
+    const N=160, pts=[], zs=[];
+    for(let i=0;i<=N;i++){const t=phi-T+2*T*i/N, c1=Math.cos(t), s1=Math.sin(t);
+      const x=cr[0]+rho*(ur[0]*c1+vr[0]*s1), y=cr[1]+rho*(ur[1]*c1+vr[1]*s1), z=cr[2]+rho*(ur[2]*c1+vr[2]*s1);
+      pts.push([cx+x*R, cy-(flipY?-y:y)*R]); zs.push(Math.max(0,z));}
+    const Lp=[],Rp=[];
+    for(let i=0;i<=N;i++){
+      const a=pts[Math.max(0,i-1)], b=pts[Math.min(N,i+1)];
+      const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;
+      const nx=-dy/l, ny=dx/l, hw=0.5*baseW*Math.pow(zs[i]/(zmax||1),0.55);
+      Lp.push([pts[i][0]+nx*hw, pts[i][1]+ny*hw]); Rp.push([pts[i][0]-nx*hw, pts[i][1]-ny*hw]);
+    }
+    ctx.beginPath();
+    Lp.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+    for(let i=N;i>=0;i--)ctx.lineTo(Rp[i][0],Rp[i][1]);
+    ctx.closePath(); ctx.fill();
+  };
+  // tilt = how much the seam plane leans toward the viewer (gives the arc its curve);
+  // off = how far the seam is lifted off the equator (the gap). tuned to the reference photo.
+  const tl=40*Math.PI/180, off=0.30;
+  const topN=[0,Math.cos(tl),-Math.sin(tl)];
+  ctx.fillStyle="#120b06";
+  seamRibbon([0,1,0], 0, false, true);      // equator: great circle → straight across, into the horizon
+  seamRibbon(topN, off, false, false);      // upper seam — small circle riding high, clear of the equator
+  seamRibbon(topN, off, true,  false);      // lower seam — mirror of the upper
+  ctx.restore();
+
+  // ── articulated hand skeleton (right hand, back view) matched to real bone structure: carpals at the
+  //    wrist, five metacarpals fanning to the knuckles, then phalanges (3 per finger, 2 for the thumb)
+  //    with joints at MCP / PIP / DIP. real length proportions. doubles as a rig for later flesh. ──
+  // hand-size slider scales the whole hand about the ball centre (= the index tip), so the index pad
+  // stays on the seam while the hand grows/shrinks
+  const hs=(S.handSize??100)/100;
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(hs,hs); ctx.translate(-cx,-cy);
+  const P=(bx,by)=>[cx+bx*R, cy-by*R];                 // ball-local (R units, +y up) → screen
+  ctx.lineCap="round";ctx.lineJoin="round";
+  const BONE="#f0ece0", DARK="#140c06", D2R=Math.PI/180;
+  // build a digit's joint chain from its knuckle, splay angle (deg from +y) and phalange lengths
+  const chain=(mcp,splay,ph)=>{let ang=splay*D2R,pt=mcp.slice();const js=[pt.slice()];
+    for(const len of ph){pt=[pt[0]+Math.sin(ang)*len, pt[1]+Math.cos(ang)*len];js.push(pt.slice());}return js;};
+  // [ metacarpalBase(CMC, on the carpus), knuckle(MCP), splay°, [proximal,middle,distal] phalange lengths ]
+  // bases spread across the distal carpal row so the metacarpals run near-parallel down a broad palm
+  // (not converging to a point); the thumb's metacarpal starts at the trapezium on the radial side.
+  const DIG=[
+    [[0.02,-0.78],[0.009,-0.36],-1.5,[0.17,0.11,0.08]], // index — straight ray (metacarpal + phalanges collinear, like the X-ray), solved so the tip stays exactly on the equator centre
+    [[0.11,-0.80],[0.17,-0.34],  2,[0.19,0.13,0.09]],   // middle (longest)
+    [[0.19,-0.80],[0.30,-0.35], 14,[0.18,0.12,0.08]],   // ring
+    [[0.26,-0.78],[0.41,-0.40], 28,[0.14,0.09,0.07]],   // pinky  (shortest)
+    [[-0.02,-0.79],[-0.255,-0.625],-55,[0.17,0.11]],    // thumb — the whole ray (metacarpal + both phalanges) is one straight −55° column from the trapezium, like the X-ray: the splay happens at the CMC, not a kink at the knuckle
+  ];
+  const carpal=P(0.13,-0.87);
+  const chains=DIG.map(d=>chain(d[1],d[2],d[3]));
+  // ── flesh: a faint translucent silhouette wrapping the rig (one union fill → no overlap darkening)
+  //    plus a soft outline, drawn first so the bones read crisply on top — an X-ray-style hand. ──
+  function fleshDigit(pts,w0,w1){
+    const S=pts.map(p=>P(p[0],p[1])), segL=[]; let tot=0;
+    for(let i=0;i<S.length-1;i++){const d=Math.hypot(S[i+1][0]-S[i][0],S[i+1][1]-S[i][1]);segL.push(d);tot+=d;}
+    const wAt=i=>{let acc=0;for(let k=0;k<i;k++)acc+=segL[k];return (w0+(w1-w0)*(tot?acc/tot:0))*R;};
+    const nrm=[];
+    for(let i=0;i<S.length;i++){let tx=0,ty=0;
+      if(i>0){tx+=S[i][0]-S[i-1][0];ty+=S[i][1]-S[i-1][1];}
+      if(i<S.length-1){tx+=S[i+1][0]-S[i][0];ty+=S[i+1][1]-S[i][1];}
+      const l=Math.hypot(tx,ty)||1;nrm.push([-ty/l,tx/l]);}
+    const Lp=S.map((p,i)=>[p[0]+nrm[i][0]*wAt(i),p[1]+nrm[i][1]*wAt(i)]);
+    const Rp=S.map((p,i)=>[p[0]-nrm[i][0]*wAt(i),p[1]-nrm[i][1]*wAt(i)]);
+    const e=S.length-1, last=S[e], wl=wAt(e);
+    ctx.moveTo(Lp[0][0],Lp[0][1]);
+    for(let i=1;i<S.length;i++)ctx.lineTo(Lp[i][0],Lp[i][1]);
+    ctx.arc(last[0],last[1],wl,Math.atan2(Lp[e][1]-last[1],Lp[e][0]-last[0]),Math.atan2(Rp[e][1]-last[1],Rp[e][0]-last[0]),true);
+    for(let i=e;i>=0;i--)ctx.lineTo(Rp[i][0],Rp[i][1]);
+    ctx.closePath();
+  }
+  const palmFlesh=[[-0.04,-0.40],[0.11,-0.36],[0.25,-0.36],[0.41,-0.40],[0.51,-0.54],[0.45,-0.86],[0.28,-1.02],[0.03,-1.04],[-0.18,-0.84],[-0.24,-0.62]];
+  const FW=[[0.056,0.040],[0.060,0.043],[0.058,0.041],[0.049,0.037],[0.078,0.052]];
+  const fleshPath=()=>{ctx.beginPath();
+    const pf=palmFlesh.map(p=>P(p[0],p[1]));ctx.moveTo(pf[0][0],pf[0][1]);for(let i=1;i<pf.length;i++)ctx.lineTo(pf[i][0],pf[i][1]);ctx.closePath();
+    chains.forEach((js,di)=>fleshDigit(js,FW[di][0],FW[di][1]));};
+  // soft shadow the hand casts on the ball (clipped to the ball disk; R/hs compensates the hand scale)
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R/hs,0,7);ctx.clip();
+  {const sp=P(0.17,-0.55);
+   const sg=ctx.createRadialGradient(sp[0],sp[1],R*0.05,sp[0],sp[1],R*0.46);
+   sg.addColorStop(0,"rgba(25,12,4,0.34)");sg.addColorStop(1,"rgba(25,12,4,0)");
+   ctx.fillStyle=sg;ctx.fillRect(sp[0]-R*0.5,sp[1]-R*0.5,R,R);}
+  ctx.restore();
+  // flesh base — solid enough to read as a hand (the skeleton shows through as an X-ray inside)
+  fleshPath();
+  ctx.fillStyle="rgba(215,160,112,0.55)";ctx.fill();
+  ctx.strokeStyle="rgba(70,44,26,0.55)";ctx.lineWidth=R*0.012;ctx.stroke();
+  // rounded-finger shading, clipped to the flesh: a light core along each digit (cylinder highlight),
+  // a palm mound, and knuckle creases at the joints
+  ctx.save();fleshPath();ctx.clip();
+  chains.forEach((js,di)=>{
+    ctx.strokeStyle="rgba(255,224,186,0.28)";ctx.lineWidth=FW[di][0]*1.1*R;
+    ctx.beginPath();js.forEach((j,i)=>{const s=P(j[0],j[1]);i?ctx.lineTo(s[0],s[1]):ctx.moveTo(s[0],s[1]);});ctx.stroke();});
+  {const pc=P(0.16,-0.62);
+   const pg=ctx.createRadialGradient(pc[0]-R*0.05,pc[1]-R*0.06,R*0.02,pc[0],pc[1],R*0.34);
+   pg.addColorStop(0,"rgba(255,224,186,0.30)");pg.addColorStop(1,"rgba(255,224,186,0)");
+   ctx.fillStyle=pg;ctx.fillRect(pc[0]-R*0.4,pc[1]-R*0.4,R*0.8,R*0.8);}
+  ctx.strokeStyle="rgba(96,58,32,0.30)";ctx.lineWidth=Math.max(1,R*0.008);
+  chains.forEach((js,di)=>{const w=FW[di][0]*R;
+    for(let i=1;i<js.length-1;i++){const a=P(js[i-1][0],js[i-1][1]),b=P(js[i][0],js[i][1]);
+      const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l,wf=0.8-0.15*i;
+      ctx.beginPath();ctx.moveTo(b[0]-nx*w*wf,b[1]-ny*w*wf);ctx.lineTo(b[0]+nx*w*wf,b[1]+ny*w*wf);ctx.stroke();}});
+  ctx.restore();
+  // ── X-ray-style bones: each bone is its OWN hourglass shape — flared ends (epiphyses), pinched
+  //    shaft — with a small dark GAP at every joint (the cartilage space), like a real radiograph.
+  //    No bright joint dots: the joints are the spaces between the bones. ──
+  const OUTL="rgba(20,12,6,0.7)";
+  const drawBone=(a,b,ra,rb)=>{
+    const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L;
+    const g=Math.min(L*0.10,R*0.012);                                  // joint gap at each end
+    // inset each end by gap + cap radius so the rounded cap TIP stops g short of the joint —
+    // otherwise the flare pokes back into the joint space; shrink flares on very short bones
+    const f=Math.min(1,(0.72*L-2*g)/(ra+rb)); if(f<=0.05)return;
+    ra*=f; rb*=f;
+    const A=[a[0]+ux*(g+ra),a[1]+uy*(g+ra)], B=[b[0]-ux*(g+rb),b[1]-uy*(g+rb)];
+    const th=Math.atan2(dy,dx), waist=(ra+rb)*0.30;                    // pinched mid-shaft
+    const mx=(A[0]+B[0])/2, my=(A[1]+B[1])/2, nx=-uy, ny=ux;
+    ctx.beginPath();
+    ctx.arc(A[0],A[1],ra,th+Math.PI/2,th-Math.PI/2);                   // flared base cap
+    ctx.quadraticCurveTo(mx-nx*waist,my-ny*waist, B[0]-nx*rb,B[1]-ny*rb);
+    ctx.arc(B[0],B[1],rb,th-Math.PI/2,th+Math.PI/2);                   // flared head cap
+    ctx.quadraticCurveTo(mx+nx*waist,my+ny*waist, A[0]+nx*ra,A[1]+ny*ra);
+    ctx.closePath();
+    ctx.fillStyle=BONE;ctx.fill();
+    ctx.strokeStyle=OUTL;ctx.lineWidth=Math.max(1,R*0.009);ctx.stroke();
+  };
+  const tips=[];
+  DIG.forEach((d,di)=>{
+    const s=di===4?1.10 : di===3?0.85 : 1;                             // thumb chunkier, pinky slighter
+    drawBone(P(d[0][0],d[0][1]), P(d[1][0],d[1][1]), 0.023*R*s, 0.030*R*s);   // metacarpal: bulbous head
+    const js=chain(d[1],d[2],d[3]);
+    const rr=[[0.027,0.021],[0.021,0.017],[0.017,0.014]];              // phalanges taper per row
+    for(let i=0;i<js.length-1;i++)
+      drawBone(P(js[i][0],js[i][1]), P(js[i+1][0],js[i+1][1]), rr[i][0]*R*s, rr[i][1]*R*s);
+    const tp=js[js.length-1]; tips.push(P(tp[0],tp[1]));
+  });
+  drawBone(P(0.02,-1.45),P(0.05,-0.94),0.026*R,0.034*R);               // radius (thumb side, wide at the wrist)
+  drawBone(P(0.28,-1.45),P(0.23,-0.94),0.021*R,0.026*R);               // ulna
+  // carpus: 8 irregular carpal bones in two rows — distal (trapezium→hamate) under the metacarpal
+  // bases, proximal (scaphoid→triquetrum) against the radius/ulna; sizes vary like the real cluster
+  [[-0.01,-0.845,0.030],[0.075,-0.855,0.027],[0.16,-0.855,0.031],[0.245,-0.845,0.033],
+   [0.03,-0.91,0.032],[0.11,-0.915,0.026],[0.19,-0.915,0.028],[0.26,-0.90,0.025]].forEach(c=>{
+    const p=P(c[0],c[1]);ctx.beginPath();ctx.ellipse(p[0],p[1],R*c[2],R*c[2]*0.82,0.3,0,7);
+    ctx.fillStyle=BONE;ctx.fill();ctx.strokeStyle=OUTL;ctx.lineWidth=Math.max(1,R*0.009);ctx.stroke();});
+  // index fingertip marker (gold) — the key contact point, on the seam centre
+  ctx.fillStyle="#f0b429";ctx.beginPath();ctx.arc(tips[0][0],tips[0][1],R*0.020,0,7);ctx.fill();
+  ctx.restore();
+}
+
+// the card answers, in order, the questions a shooter actually asks at the line:
+// nail → how far open → knees → hand/wrist → elbow → how high → how much snap
+function renderCues(){
+  const el=document.getElementById("cueCard"); if(!el) return;
+  const right=S.hand!=="L", hand=right?"right":"left", side=right?"left":"right";
+  const ai=alignInfo(S), cues=[];
+  // apex of the ideal arc above the rim (ft) + backspins over the flight
+  let apex="", turns="";
+  if(last&&last.ideal.pts.length){
+    let mx=0; for(const p of last.ideal.pts) if(p[1]>mx)mx=p[1];
+    apex=((mx-RIM_H)*3.281).toFixed(1);
+    if(last.ideal.crossIdx>0) turns=Math.round(S.spin*last.ideal.crossIdx*0.003);
+  }
+  // 1 — the nail
+  cues.push(!S.footAim
+    ? `Toe to the nail — ${hand} foot at the dead center of the line.`
+    : `${hand[0].toUpperCase()+hand.slice(1)} foot ${Math.abs(S.footAim)} cm ${S.footAim>0?"right":"left"} of the center nail.`);
+  // 2 — how far to open
+  cues.push(`Open ~${S.shoulderAng}° to the ${side}: toes to ${clockFor(S.footAng??0,S.hand)}, hips and shoulders turning with them.`);
+  // 3 — knees
+  cues.push(`Bend the knees ~${S.knee}° and dip the ball to your ${(S.dip??0)>=55?"waist":"chest"} — the power comes from the floor.`);
+  // 4 — the grip: seams + which finger owns the centerline
+  const fp=S.fingerPos??55, ftxt=fp<30?"index finger":fp<=70?"index–middle gap":"middle finger";
+  cues.push(`${(S.seamAlign??70)>=60?"Seams lined up across the fingertips":"LINE UP the seams across your fingertips"} — ball's middle under your ${ftxt}, whole hand on it.`);
+  // 5 — wrist load (standard form, keyed to your rhythm — not simulated)
+  cues.push((S.sync??0)>=66
+    ? "Don't pre-cock the wrist — let the dip load it on the way up, fully cocked at the set point."
+    : "Cock the wrist back as you raise to the set point — loaded before the push.");
+  // 5 — elbow
+  cues.push("Elbow under the ball, pointed at the rim the whole way up"
+    +(ai.quality<0.8?" — yours is flaring; open the shoulders a touch more":"")+".");
+  // 6 — how high
+  cues.push(`Shoot UP at ~${+S.angle}°${apex?` — the ball should peak about ${apex} ft above the rim`:""}.`);
+  // 7 — the snap
+  cues.push(`Snap the wrist down${turns?` — about ${turns} full backspins in the air`:""}, fingers in the rim, hold it till it lands.`);
+  const pct=last?last.mc.pct.toFixed(0):"—";
+  el.innerHTML=cues.map((t,i)=>`<div class="cue"><span class="n">${i+1}</span><span>${t}</span></div>`).join("")
+    +`<div class="sub">Simulated ~${pct}% with these mechanics at your consistency — a hypothesis to test at a real line. The wrist-load cue is standard form, not part of the physics.</div>`;
+}
+
+// ───────────────── shot animation ─────────────────
+let anim=null, scrubP=1;                 // scrubP = held timeline position (1 = follow-through)
+function drawShot(p){ drawScene(p); drawBehind(p); }
+function setTimeline(p){ const tl=document.getElementById("timeline"); if(tl) tl.value=p; }
+function shoot(){
+  if(anim) cancelAnimationFrame(anim);
+  const t0=performance.now(), dur=1700;
+  (function step(now){
+    const p=Math.min(1,(now-t0)/dur);
+    scrubP=p; setTimeline(p); drawShot(p);
+    if(p<1) anim=requestAnimationFrame(step); else anim=null;
+  })(t0);
+}
+
+// ───────────────── personalize: calibrate to real FT% + find-my-ideal optimizer ─────────────────
+function evalPct(s,N){ const launch=deriveLaunch(s);
+  srand(20260610); const pct=monteCarlo(s,launch,N).pct; _rng=null; return pct; }
+const tick=()=>new Promise(r=>setTimeout(r,0));
+function optMsg(html){document.getElementById("optStatus").innerHTML=html;}
+function setBusy(b){["calBtn","optBtn"].forEach(id=>document.getElementById(id).disabled=b);}
+let solverBusy=false;
+
+async function calibrate(){
+  if(solverBusy)return; solverBusy=true; setBusy(true);
+  try{
+    const target=parseFloat(document.getElementById("realPct").value);
+    if(!(target>=5&&target<=99)){optMsg("Enter a real FT% between 5 and 99.");return;}
+    optMsg("Calibrating…"); await tick();
+    const at=f=>evalPct({...S,form:f},1600);
+    const pMax=at(100); await tick();
+    const pMin=at(0); await tick();
+    let f;
+    if(target>=pMax){ f=100;
+      optMsg(`Even perfect consistency only reaches ~<b>${pMax.toFixed(0)}%</b> with these mechanics — consistency set to 100%. Improve the mechanics (or ★ optimize), then recalibrate.`);}
+    else if(target<=pMin){ f=0;
+      optMsg(`These mechanics make ~<b>${pMin.toFixed(0)}%</b> even at minimum consistency — set to 0%.`);}
+    else{
+      let lo=0,hi=100;
+      for(let i=0;i<12;i++){const mid=(lo+hi)/2; if(at(mid)<target) lo=mid; else hi=mid; if(i%3===2)await tick();}
+      f=(lo+hi)/2;
+      optMsg(`Calibrated: your consistency ≈ <b>${f.toFixed(0)}%</b> — the sim now matches your real ${target.toFixed(0)}% with these mechanics. Every tweak from here is relative to <i>your</i> baseline.`);
+    }
+    S.form=Math.round(f);
+    document.getElementById("calBadge").textContent=
+      (target>=5&&target<=99)?`✓ matched to your ${target.toFixed(0)}%`:"";
+    buildAllGroups(); refresh();
+  } finally{ solverBusy=false; setBusy(false); }
+}
+
+// searches only the parameters that move the statistics (knee, dip, width, stagger are visual-only).
+// height, hand, and consistency are YOU — they stay fixed.
+const OPT_SPACE=[
+  {k:"shoulderAng",lab:"shoulders",min:-10,max:36,dec:0,unit:"°"},
+  {k:"elbowTuck",  lab:"elbow tuck",min:0, max:100,dec:0,unit:"%"},
+  {k:"hipAng",     lab:"hips",     min:-10,max:36,dec:0,unit:"°"},
+  {k:"footAng",    lab:"feet",     min:-10,max:40,dec:0,unit:"°"},
+  {k:"seamAlign",  lab:"seams",    min:0,  max:100,dec:0,unit:"%"},
+  {k:"fingerPos",  lab:"finger",   min:0,  max:100,dec:0,unit:""},
+  {k:"footAim",    lab:"foot",     min:-16,max:16,dec:0,unit:"cm"},
+  {k:"angle",      lab:"arc",      min:38, max:62,dec:0,unit:"°"},
+  {k:"ext",        lab:"extension",min:0,  max:100,dec:0,unit:"%"},
+  {k:"spin",       lab:"spin",     min:0,  max:5,  dec:1,unit:"rev/s"},
+  {k:"sync",       lab:"rhythm",   min:0,  max:100,dec:0,unit:"%"},
+];
+async function optimize(){
+  if(solverBusy)return; solverBusy=true; setBusy(true);
+  try{
+    optMsg("Measuring your current baseline…"); await tick();
+    const start={...S};
+    const before=evalPct(start,2000);
+    const space=OPT_SPACE.concat(autoaim()?[]:[{k:"power",lab:"power",min:0,max:100,dec:0,unit:"%"}]);
+    let best={...S};
+    const rnd=(v,dec)=>Math.round(v*10**dec)/10**dec;
+    for(let pass=0;pass<2;pass++){
+      const N=pass?1400:800, nC=pass?9:7;
+      const margin=0.15;                          // common random numbers make comparisons paired — tiny margin suffices
+      for(const d of space){
+        let bv=best[d.k], bp=evalPct(best,N);
+        for(let i=0;i<nC;i++){
+          const v=rnd(d.min+(d.max-d.min)*i/(nC-1),d.dec);
+          if(v===bv)continue;
+          const p=evalPct({...best,[d.k]:v},N);
+          if(p>bp+margin){bp=p;bv=v;}
+        }
+        best[d.k]=bv;
+        optMsg(`Pass ${pass+1}/2 — ${d.lab}: <b>${bv}${d.unit}</b> (${bp.toFixed(0)}%)…`); await tick();
+      }
+    }
+    const after=evalPct(best,2000);
+    const changes=space.filter(d=>Math.abs(best[d.k]-start[d.k])>0.5)
+      .map(d=>`${d.lab} ${start[d.k]}→<b>${best[d.k]}${d.unit}</b>`);
+    Object.assign(S,best);
+    buildAllGroups();
+    refresh();
+    optMsg(`Your ideal: <b>${after.toFixed(0)}%</b> (was ${before.toFixed(0)}%). `+
+      (changes.length?`Changes: ${changes.join(", ")}.`:"You were already at your optimum.")+
+      " Treat it as a hypothesis — test it at a real line.");
+  } finally{ solverBusy=false; setBusy(false); }
+}
+
+// ───────────────── UI plumbing ─────────────────
+function autoaim(){return document.getElementById("autoaim").checked;}
+function buildGroup(elId,defs){
+  const el=document.getElementById(elId);el.innerHTML="";
+  defs.forEach(d=>{
+    const wrap=document.createElement("div");wrap.className="ctrl";
+    wrap.innerHTML=`<div class="top"><label>${d.label}</label>
+      <span class="val" id="v_${d.k}"></span></div>
+      <input type="range" id="i_${d.k}" min="${d.min}" max="${d.max}" step="${d.step}">
+      <div class="hint">${d.hint}</div>`;
+    el.appendChild(wrap);
+    const input=wrap.querySelector("input");
+    input.value=S[d.k];
+    input.addEventListener("input",()=>{S[d.k]=parseFloat(input.value);refresh();});
+    d._fmt=v=>d.unit==="°"?v.toFixed(d.step<1?1:0)+d.unit:v.toFixed(d.step<1?1:0)+d.unit;
+  });
+}
+function syncVals(){
+  ALLDEFS.forEach(d=>{
+    const el=document.getElementById("v_"+d.k);if(!el)return;
+    let v=S[d.k];
+    if(d.k==="height"){ const inch=v/2.54; let ft=Math.floor(inch/12), ins=Math.round(inch-ft*12); if(ins===12){ft++;ins=0;} el.textContent=`${ft}′${ins}″`; return; }
+    if(d.k==="shoulderAng"||d.k==="hipAng"||d.k==="footAng"){ el.textContent=`${v}° ${v>3?"open":v<-3?"closed":"square"}`; return; }
+    if(d.k==="footAim"){ el.textContent=`${Math.abs(v)} cm ${v>1?"right":v<-1?"left":"center"}`; return; }
+    if(d.k==="elbowTuck"){ el.textContent = v===0?"none (stance lines it up)":`${v}% muscled in`; return; }
+    if(d.k==="sync"){ el.textContent=`${v}% ${v>66?"1-motion":v<34?"2-motion":"hybrid"}`; return; }
+    if(d.k==="seamAlign"){ el.textContent=`${v}% lined up`; return; }
+    if(d.k==="fingerPos"){ el.textContent=v<30?"index finger":v<=70?"index–middle gap":"middle finger"; return; }
+    el.textContent = d.unit===" rev/s"?v.toFixed(1)+d.unit
+      : d.unit==="°"?(d.step<1?v.toFixed(1):v.toFixed(0))+d.unit
+      : (d.step<1?v.toFixed(1):v.toFixed(0))+d.unit;
+  });
+  // disable power when auto-aim on
+  const pw=document.getElementById("i_power");if(pw)pw.disabled=autoaim();
+  // group summaries — at-a-glance values on the collapsed cards
+  const t=id=>document.getElementById(id);
+  if(t("sumSetup")) t("sumSetup").textContent=
+    `toes ${S.footAng}° · foot ${!S.footAim?"centered":Math.abs(S.footAim)+" cm "+(S.footAim>0?"R":"L")} · shoulders ${S.shoulderAng}°`;
+  if(t("sumGrip")) t("sumGrip").textContent=
+    `seams ${S.seamAlign??70}% · ${(S.fingerPos??55)<30?"index":((S.fingerPos??55)<=70?"gap":"middle")} on center`;
+  if(t("sumLoad")) t("sumLoad").textContent=`knees ${S.knee}° · dip ${S.dip}%`;
+  if(t("sumRel")) t("sumRel").textContent=`arc ${+S.angle}° · rhythm ${S.sync}% · spin ${(+S.spin).toFixed(1)}`;
+  if(t("sumAdv")) t("sumAdv").textContent=`consistency ${S.form}%`;
+}
+function buildHand(){
+  const el=document.getElementById("handToggle");el.innerHTML="";
+  [["R","Right hand"],["L","Left hand"]].forEach(([k,lab])=>{
+    const b=document.createElement("div");b.className="preset"+(S.hand===k?" active":"");
+    b.textContent=lab;b.onclick=()=>{S.hand=k;buildHand();refresh();};
+    el.appendChild(b);
+  });
+}
+function buildPresets(){
+  const el=document.getElementById("presets");el.innerHTML="";
+  Object.keys(PRESETS).forEach(name=>{
+    const b=document.createElement("div");b.className="preset"+(name===preset?" active":"");
+    b.textContent=name;b.onclick=()=>{preset=name;S={...PRESETS[name]};
+      [...document.querySelectorAll("#presets .preset")].forEach(x=>x.classList.toggle("active",x.textContent===name));
+      document.getElementById("calBadge").textContent="";
+      buildAllGroups();buildHand();refresh();};
+    el.appendChild(b);
+  });
+}
+function refresh(){syncVals();compute();drawShot(scrubP);drawRim();drawCoach();drawHands();renderCues();}
+
+document.getElementById("reset").onclick=()=>{S={...PRESETS[preset]};
+  document.getElementById("calBadge").textContent="";
+  buildAllGroups();buildHand();refresh();};
+document.getElementById("autoaim").onchange=refresh;
+document.getElementById("shoot").onclick=shoot;
+document.getElementById("timeline").addEventListener("input",e=>{
+  if(anim){cancelAnimationFrame(anim);anim=null;}            // scrubbing takes over from playback
+  scrubP=parseFloat(e.target.value); drawShot(scrubP);
+});
+document.getElementById("calBtn").onclick=calibrate;
+document.getElementById("optBtn").onclick=optimize;
+window.addEventListener("resize",()=>{drawShot(scrubP);drawRim();drawCoach();drawHands();});
+
+buildPresets();
+buildHand();
+buildAllGroups();
+refresh();
+
+// ── colour theme selector (recolours the app chrome via CSS vars; the canvases keep their own
+//    palette since they depict the sim). swatches in the header, persisted to localStorage. ──
+const THEMES={
+  Hardwood:{bg:"#120d09",panel:"#1c140d",panel2:"#241910",line:"#39281a",txt:"#f3ece4",muted:"#a08a76",accent:"#ff8a3d",accent2:"#e06f24"},
+  Midnight:{bg:"#0a1120",panel:"#111b2e",panel2:"#152238",line:"#22334d",txt:"#e8eef8",muted:"#8494ad",accent:"#5aa7ff",accent2:"#3b82d9"},
+  Court:{bg:"#0b1411",panel:"#121f1a",panel2:"#16271f",line:"#21362b",txt:"#e7f0ea",muted:"#7d9488",accent:"#39d98a",accent2:"#2bb673"},
+  Chalk:{bg:"#f1efe7",panel:"#fbfaf5",panel2:"#f3f1e8",line:"#d9d4c2",txt:"#25341f",muted:"#6f7d6d",accent:"#d2691e",accent2:"#b0551a"},
+};
+let theme=localStorage.getItem("ft_theme"); if(!THEMES[theme]) theme="Hardwood";
+function applyTheme(){
+  const t=THEMES[theme], r=document.documentElement.style;
+  Object.keys(t).forEach(k=>r.setProperty("--"+k,t[k]));
+  document.querySelectorAll("#themeBtns .swb").forEach(b=>b.classList.toggle("active",b.dataset.t===theme));
+  localStorage.setItem("ft_theme",theme);
+}
+(function buildThemes(){
+  const tb=document.getElementById("themeBtns");
+  Object.keys(THEMES).forEach(name=>{const t=THEMES[name],b=document.createElement("button");
+    b.className="swb";b.dataset.t=name;b.title=name;
+    b.style.background=`linear-gradient(135deg,${t.accent} 50%,${t.bg} 50%)`;
+    b.onclick=()=>{theme=name;applyTheme();};tb.appendChild(b);});
+  applyTheme();
+})();
+</script>
+</body>
+</html>

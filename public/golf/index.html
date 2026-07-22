@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BallFlight — Golf Setup &amp; Physics Sandbox</title>
+<style>
+  :root{
+    --bg:#0b1411; --panel:#121f1a; --panel2:#16271f; --line:#21362b;
+    --txt:#e7f0ea; --muted:#7d9488; --accent:#39d98a; --accent2:#2bb673; --warn:#f0b429;
+    --ink:#06241a;   /* text on accent-filled elements */
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:var(--font)}
+  header{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:.3px}
+  header .tag{color:var(--muted);font-size:12.5px}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:17px}
+  .look{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .lk{display:flex;gap:5px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:4px 6px}
+  .swb{width:19px;height:19px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.15s}
+  .swb.active{border-color:var(--txt);transform:scale(1.12)}
+  .fnb{background:transparent;border:1px solid transparent;border-radius:6px;color:var(--muted);cursor:pointer;
+    font-size:13.5px;padding:2px 7px;line-height:1.2}
+  .fnb:hover{color:var(--txt)}
+  .fnb.active{background:var(--accent);color:var(--ink);font-weight:600}
+  .play.active{background:var(--accent);color:var(--ink);border-color:var(--accent);font-weight:600}
+  .wrap{display:grid;grid-template-columns:360px 1fr;min-height:calc(100vh - 60px)}
+  @media (max-width:920px){.wrap{grid-template-columns:1fr}}
+  .controls{padding:18px;border-right:1px solid var(--line);overflow:auto}
+  .stage{padding:18px 22px;display:flex;flex-direction:column;gap:16px}
+  .clubs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .club{flex:1;min-width:64px;padding:9px 6px;border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);border-radius:9px;cursor:pointer;font-size:12.5px;text-align:center;transition:.15s}
+  .club:hover{border-color:var(--accent2);color:var(--txt)}
+  .club.active{background:var(--accent);color:var(--ink);border-color:var(--accent);font-weight:600}
+  .section-label{font-size:18px;font-weight:800;letter-spacing:-.1px;color:var(--txt);margin:30px 0 15px;
+    display:flex;align-items:center;gap:11px}
+  .section-label::before{content:"";width:4px;height:20px;border-radius:2px;background:var(--accent)}
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line)}
+  .ctrl{margin-bottom:15px}
+  .ctrl .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .ctrl label{font-size:13px;color:var(--txt)}
+  .ctrl .val{font-size:12.5px;color:var(--accent);font-variant-numeric:tabular-nums;font-weight:600}
+  .ctrl .hint{font-size:11px;color:var(--muted);margin-top:3px}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:4px;background:var(--line);outline:none;margin:0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+    background:var(--accent);cursor:pointer;border:3px solid var(--bg);box-shadow:0 0 0 1px var(--accent)}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--bg)}
+  .reset{width:100%;margin-top:6px;padding:9px;background:transparent;border:1px solid var(--line);
+    color:var(--muted);border-radius:8px;cursor:pointer;font-size:12.5px}
+  .reset:hover{color:var(--txt);border-color:var(--accent2)}
+  .deliv{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px;margin-top:4px}
+  .deliv .dl-title{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:9px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:11.5px;color:var(--muted)}
+  .chip b{color:var(--accent);font-weight:600;font-variant-numeric:tabular-nums}
+  .foot{color:var(--muted);font-size:11.5px;line-height:1.5;margin-top:14px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media (max-width:760px){.stats{grid-template-columns:1fr}}
+  .yt{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .yt th{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;text-align:right;padding:8px 14px 6px;border-bottom:1px solid var(--line)}
+  .yt th:first-child{text-align:left}
+  .yt td{padding:5.5px 14px;text-align:right;color:var(--txt);border-bottom:1px solid rgba(255,255,255,.04)}
+  .yt td:first-child{text-align:left;color:var(--muted)}
+  .yt td small{color:var(--muted);margin-left:3px}
+  .yt tr.cur td{background:rgba(57,217,138,.07);color:#7fe3b4;font-weight:600}
+  .yt tr.cur td:first-child{color:#7fe3b4}
+  .yt tr:last-child td{border-bottom:none}
+  .sg{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
+  .sg .h{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+  .sg .h em{font-style:normal;color:var(--accent2);text-transform:none;letter-spacing:0}
+  .sg .r{display:flex;gap:16px;row-gap:6px;flex-wrap:wrap;align-items:baseline}
+  .si .sl{display:block;font-size:11px;color:var(--muted)}
+  .si .sv{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+  .si .sv small{font-size:11px;color:var(--muted);font-weight:500;margin-left:2px}
+  .si.big .sv{font-size:26px;font-weight:700}
+  .launch-row{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .launch-row b{color:var(--txt);font-weight:600;font-variant-numeric:tabular-nums}
+  .views{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:760px){.views{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .card.wide{grid-column:1/-1}
+  .card .hd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;
+    border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .card canvas{display:block;width:100%}
+  .shape{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:20px;
+    background:var(--panel2);border:1px solid var(--line);font-size:12.5px;font-weight:600}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .play{padding:6px 13px;border-radius:7px;border:1px solid var(--accent2);background:transparent;
+    color:var(--accent);cursor:pointer;font-size:12px;font-weight:600}
+  .play:hover{background:rgba(57,217,138,.1)}
+  .hd .right{display:flex;gap:8px;align-items:center}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .segb{padding:5px 9px;background:transparent;border:none;color:var(--muted);font-size:11px;cursor:pointer}
+  .segb.active{background:var(--accent);color:#06241a;font-weight:600}
+  .chkbar{display:flex;gap:10px;align-items:center;padding:8px 14px 12px}
+  .chkbar input[type=range]{flex:1;accent-color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⛳</div>
+  <h1>BallFlight <span class="tag">· setup &amp; physics sandbox</span></h1>
+  <span class="look" id="lookCtrls">
+    <span class="lk" id="themeBtns" title="Color theme"></span>
+    <span class="lk" id="fontBtns" title="Font style"></span>
+  </span>
+</header>
+
+<div class="wrap">
+  <!-- ── CONTROLS ───────────────────────────── -->
+  <div class="controls">
+    <div class="section-label">Swing style</div>
+    <div class="clubs" id="styles"></div>
+
+    <div class="section-label">Club</div>
+    <div class="clubs" id="clubs"></div>
+
+    <div class="section-label">Setup — address position</div>
+    <div id="setupSliders"></div>
+
+    <div class="section-label">Grip &amp; hands</div>
+    <div id="gripSliders"></div>
+
+    <div class="section-label">Arms</div>
+    <div id="armSliders"></div>
+
+    <div class="section-label">Posture &amp; pivot</div>
+    <div id="postureSliders"></div>
+
+    <div class="section-label">Swing</div>
+    <div id="swingSliders"></div>
+
+    <div class="section-label">Consistency &amp; target</div>
+    <div id="dispSliders"></div>
+
+    <button class="reset" id="saveSwing">💾 Save my swing</button>
+    <button class="reset" id="reset">↺ Reset to style defaults</button>
+
+    <div class="deliv">
+      <div class="dl-title">Delivery — club at impact (what your setup produces)</div>
+      <div class="chips" id="delivChips"></div>
+    </div>
+
+    <p class="foot">
+      Adjust the <b>setup</b> and <b>swing</b>; the app derives the club delivery (path, face, attack, loft),
+      then the physics model produces the ball flight. Calibrated so a tour driver carries ~280 yds.
+    </p>
+  </div>
+
+  <!-- ── STAGE ──────────────────────────────── -->
+  <div class="stage">
+    <div class="stats" id="stats"></div>
+
+    <div class="views">
+      <div class="card">
+        <div class="hd"><span>Swing — <span id="swTitle">3D body</span></span>
+          <span class="right">
+            <span class="seg" id="camSeg"><button class="segb active" data-cam="face">Face-on</button><button class="segb" data-cam="dtl">Down-the-line</button><button class="segb" data-cam="top">Overhead</button></span>
+            <button class="play" id="playSwing">▶ Replay</button>
+          </span></div>
+        <canvas id="swing" height="340"></canvas>
+        <div class="chkbar">
+          <span class="seg" id="chkSeg"><button class="segb active" data-ph="0.12">Address</button><button class="segb" data-ph="0.45">Top</button><button class="segb" data-ph="0.605">Impact</button><button class="segb" data-ph="1">Finish</button></span>
+          <input type="range" id="phScrub" min="0" max="1" step="0.005" value="0.12">
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><span>Setup — top-down (alignment · hips · weight · ball)</span></div>
+        <canvas id="setup" height="320"></canvas>
+      </div>
+      <div class="card wide">
+        <div class="hd"><span>Side view — height &amp; carry</span>
+          <button class="play" id="playSide">▶ Replay</button></div>
+        <canvas id="side" height="280"></canvas>
+      </div>
+      <div class="card wide">
+        <div class="hd"><span>Top-down — shot shape &amp; curve</span><span id="shapeBadge"></span></div>
+        <canvas id="top" height="280"></canvas>
+      </div>
+      <div class="card wide">
+        <div class="hd"><span>Dispersion — shot pattern (down the fairway)</span>
+          <span class="right">
+            <button class="play" id="hitBtn" style="display:none">🏌 Hit · space</button>
+            <button class="play" id="rangeBtn">Range game</button>
+            <span id="dispBadge"></span>
+          </span></div>
+        <canvas id="disp" height="320"></canvas>
+      </div>
+      <div class="card wide">
+        <div class="hd"><span>Stock yardages — your bag, preset swing</span><span id="chartBadge"></span></div>
+        <div id="yardTable"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  PHYSICS  (verified against real launch-monitor data)
+// ============================================================
+const M=0.04593,R=0.02134,A=Math.PI*R*R,RHO=1.225,G=9.81,MPH=0.44704,YD=1.09361;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const m=Math.hypot(a[0],a[1],a[2]);return m?[a[0]/m,a[1]/m,a[2]/m]:[0,0,0];};
+function rodrigues(k,axis,ang){const a=norm(axis),c=Math.cos(ang),s=Math.sin(ang);
+  const d=k[0]*a[0]+k[1]*a[1]+k[2]*a[2],cr=cross(a,k);
+  return [k[0]*c+cr[0]*s+a[0]*d*(1-c),k[1]*c+cr[1]*s+a[1]*d*(1-c),k[2]*c+cr[2]*s+a[2]*d*(1-c)];}
+
+function impact(p){
+  const eff=p.smash*(1-0.004*Math.max(0,p.loft-12));
+  const ballSpeed=p.speed*eff;
+  const spinLoft=p.loft-p.attack;
+  const vLaunch=p.loft*(0.88-0.006*p.loft)+0.5*p.attack;
+  const backspin=ballSpeed*spinLoft*1.55;
+  const startDir=0.85*p.face+0.15*p.path;
+  const tilt=(p.face-p.path)*1.0;
+  return {ballSpeed,vLaunch,backspin,startDir,tilt};
+}
+function flight(L){
+  const V=L.ballSpeed*MPH,th=L.vLaunch*Math.PI/180,ph=L.startDir*Math.PI/180;
+  let v=[V*Math.cos(th)*Math.cos(ph),V*Math.sin(th),V*Math.cos(th)*Math.sin(ph)];
+  const omega0=L.backspin*2*Math.PI/60;
+  const h=norm([v[0],0,v[2]]),base=norm(cross(h,[0,1,0]));
+  const spinAxis=norm(rodrigues(base,norm(v),L.tilt*Math.PI/180));
+  let pos=[0,0,0],t=0,apex=0;const dt=0.002,pts=[[0,0,0]];let last=v.slice();
+  while(true){
+    const sp=Math.hypot(v[0],v[1],v[2]),omega=omega0*Math.exp(-t/30);
+    const S=sp>0?R*omega/sp:0,Cl=Math.min(0.205,1.7*S),Cd=0.205+0.20*Math.min(S,0.30);
+    const vhat=[v[0]/sp,v[1]/sp,v[2]/sp],q=0.5*RHO*A*sp*sp/M,lift=cross(spinAxis,vhat);
+    const a=[-Cd*q*vhat[0]+Cl*q*lift[0],-Cd*q*vhat[1]+Cl*q*lift[1]-G,-Cd*q*vhat[2]+Cl*q*lift[2]];
+    last=v.slice();
+    v=[v[0]+a[0]*dt,v[1]+a[1]*dt,v[2]+a[2]*dt];
+    pos=[pos[0]+v[0]*dt,pos[1]+v[1]*dt,pos[2]+v[2]*dt];
+    apex=Math.max(apex,pos[1]);t+=dt;pts.push([pos[0]*YD,pos[1]*YD,pos[2]*YD]);
+    if(pos[1]<=0||t>15)break;
+  }
+  const carry=pos[0]*YD,offline=pos[2]*YD,height=apex*YD;
+  const hsp=Math.hypot(last[0],last[2])||1;
+  const descent=Math.atan2(-last[1],hsp)*180/Math.PI;
+  const roll=Math.max(0,(50-descent))*(L.ballSpeed/150)*1.5;    // rolls out along the landing direction (flat range)
+  // total & restOffline = the RESTING point on both axes (roll split by the landing direction) — matches the
+  // dispersion's flightLanding(), so the side/top views agree with the scatter and "you play it where it stops".
+  return {pts,carry,offline,height,descent,
+          total:carry+roll*last[0]/hsp, restOffline:offline+roll*last[2]/hsp, flightTime:t};
+}
+function shapeOf(curve){const a=Math.abs(curve);   // curve = lateral bend off the start line (yds)
+  if(a<4)return{name:"Straight",col:"#39d98a"};
+  if(a>20)return{name:(curve>0?"Slice":"Hook"),col:"#f0b429"};
+  return{name:(curve>0?"Fade":"Draw"),col:"#39d98a"};}
+
+// ============================================================
+//  SETUP  ->  DELIVERY   (transparent biomechanical model)
+// ============================================================
+const CLUBS={
+  Driver:{speed:110,attack0:2,loft0:13,smash:1.48},
+  "3-Wood":{speed:103,attack0:-2,loft0:16,smash:1.47},
+  "5-Wood":{speed:100,attack0:-2.5,loft0:19,smash:1.46},
+  Hybrid:{speed:97,attack0:-3,loft0:22,smash:1.44},
+  "4-Iron":{speed:94,attack0:-3,loft0:24,smash:1.41},
+  "5-Iron":{speed:90,attack0:-3.5,loft0:27,smash:1.40},
+  "6-Iron":{speed:88,attack0:-3.8,loft0:29,smash:1.39},
+  "7-Iron":{speed:85,attack0:-4,loft0:31,smash:1.38},
+  "8-Iron":{speed:82,attack0:-4.3,loft0:35,smash:1.36},
+  "9-Iron":{speed:79,attack0:-4.6,loft0:39,smash:1.34},
+  PW:{speed:75,attack0:-5,loft0:44,smash:1.30},
+  GW:{speed:72,attack0:-5.2,loft0:50,smash:1.27},
+  SW:{speed:69,attack0:-5.5,loft0:54,smash:1.24},
+  LW:{speed:66,attack0:-6,loft0:58,smash:1.21},
+};
+let power=1;   // player power scale: 1.0 = the 110-mph baseline driver; scales EVERY club's stock speed together
+function neutralSetup(c){return {aim:0,align:0,shoAim:0,ballPos:0,weight:50,tilt:6,grip:0,speed:CLUBS[c].speed*power,hipTurn:55,release:0,
+  gripPress:0,shaftLean:0,trailArm:0,armWidth:0,shoTurn:90,headPos:0,
+  stanceWidth:0,leadWrist:0,posture:0,kneeFlex:0,spineSide:0,hipHinge:0,backswing:100};}
+
+function deriveDelivery(s){
+  const c=CLUBS[club];
+  let attack=c.attack0,loft=c.loft0,path=0,face=0,speed=s.speed;
+  // alignment: club PATH tracks the shoulders / swing-plane far more than the feet; the face is aimed
+  // largely at the target (player intent), so it follows the body only slightly -- that's what lets a
+  // closed setup with a square face produce a compressed draw (the Venetos shot). closed(+) => in-to-out.
+  const _sa=s.align||0, _ss=(s.shoAim!=null?s.shoAim:_sa);
+  path+=_ss*0.62 + _sa*0.15;  face+=_ss*0.06 + _sa*0.06;
+  // AIM direction: rotates the WHOLE shot vs the target line — path & face intent move together (unlike
+  // open/closed alignment, where the face stays at the target). Added AFTER the shape clamp below, so the
+  // club's shape stays sane while the whole shot rotates. Aim right(+) => a draw falls back to target.
+  const _aim=s.aim||0;
+  // ball position: forward(+) => up-attack, more loft, face a touch closed
+  attack+=s.ballPos*1.5; loft+=s.ballPos*0.5; face+=-s.ballPos*0.6;
+  // weight at address: lead(>50) => down-attack & de-loft
+  attack+=-(s.weight-50)*0.10; loft+=-(s.weight-50)*0.04;
+  // ...and the steep descending strike HOLDS OFF the release (face a touch open => the closed-stance hook
+  // becomes a tight draw). Drift back onto the trail foot and the hands flip the face shut => a big hook.
+  face+=(s.weight-50)*0.04;
+  // spine tilt away from target: more => up-attack, slight in-to-out
+  attack+=(s.tilt-6)*0.18; path+=(s.tilt-6)*0.06;
+  // grip: strong(+) closes face; weak(-) opens
+  face+=-s.grip*0.7;
+  // hip rotation through impact: more => more speed & slightly in-to-out
+  speed+=(s.hipTurn-55)*0.20; path+=(s.hipTurn-55)*0.04;
+  // release timing: late(+) opens face & adds loft; early(-) closes & de-lofts
+  face+=s.release*0.7; loft+=s.release*0.2;
+  // ---- body details (rich what-if) ----
+  // grip pressure: tight(+) holds off the release (face stays open => fade) & adds tension (slower)
+  face+=s.gripPress*0.25; speed+=-Math.max(0,s.gripPress)*0.12;
+  // shaft lean at address: forward(+) de-lofts & moves low point forward (down strike), hoods slightly
+  loft+=-s.shaftLean*1.3; attack+=-s.shaftLean*0.25; face+=s.shaftLean*0.08;
+  // trail-arm position: tucked(-) => shallow/in-to-out (draw); flying(+) => steep/over-the-top (fade)
+  path+=-s.trailArm*0.45; attack+=-s.trailArm*0.12;   // flying = steeper/down strike; tucked = shallower/up
+  // arm width: wide/extended(+) => bigger arc => more speed; narrow/bent(-) => less
+  speed+=s.armWidth*0.35;
+  // shoulder turn (coil): more turn => more stored speed
+  speed+=(s.shoTurn-90)*0.12;
+  // head position: behind the ball(+) => up-strike; over/ahead(-) => down-strike
+  attack+=s.headPos*0.30;
+  // stance width: wide(+) => steadier but less turn (slower) & slightly steeper; narrow => more rotation
+  speed+=-s.stanceWidth*0.07; attack+=-s.stanceWidth*0.06;
+  // lead wrist at impact: bowed(+) de-lofts & closes the face (low draw); cupped(-) adds loft & opens it (high fade)
+  loft+=-s.leadWrist*0.5; face+=-s.leadWrist*0.45;
+  // posture / forward bend: bent over(+) => flatter plane => in-to-out (draw); upright(-) => steep => out-to-in (fade)
+  path+=s.posture*0.22;
+  // knee flex: more flex(+) => more ground force => a touch more speed
+  speed+=s.kneeFlex*0.08;
+  // side bend at impact: trail-side(+) raises the lead shoulder => up-strike & slight in-to-out
+  attack+=s.spineSide*0.16; path+=s.spineSide*0.05;
+  // hip depth / squat in transition: more(+) => shallower, more lag & speed, slight up-strike
+  speed+=s.hipHinge*0.10; attack+=s.hipHinge*0.07;
+  // backswing length: a shorter swing stores less speed (less distance) but keeps the same shape/path/face
+  // (control shot). CONCAVE in bs — and gentle, because carry compounds on speed (~speed^1.8 via spin/lift):
+  // this curve lands carry at ~90% (3/4), ~72% (1/2), ~50% (1/4) of full — real knock-down ratios.
+  const _bs=(s.backswing!=null?s.backswing:100)/100; speed*=(0.55+0.45*_bs*(1.6-0.6*_bs));
+  return {speed:clamp(speed,40,140),attack:clamp(attack,-10,12),loft:clamp(loft,4,65),
+          path:clamp(path,-28,28)+_aim,face:clamp(face,-15,15)+_aim,smash:c.smash};
+}
+function computeShot(s){const d=deriveDelivery(s);const L=impact(d);return {d,L,f:flight(L)};}
+
+// ============================================================
+//  ACCURACY / DISPERSION  (Monte-Carlo, mirrors the free-throw make%)
+// ============================================================
+let consistency=58, fairwayW=32;
+const MC_N=180;
+// landing-only flight (coarse dt, no path array) for the Monte-Carlo
+function flightLanding(L){
+  const V=L.ballSpeed*MPH,th=L.vLaunch*Math.PI/180,ph=L.startDir*Math.PI/180;
+  let v=[V*Math.cos(th)*Math.cos(ph),V*Math.sin(th),V*Math.cos(th)*Math.sin(ph)];
+  const omega0=L.backspin*2*Math.PI/60;
+  const h=norm([v[0],0,v[2]]),base=norm(cross(h,[0,1,0]));
+  const spinAxis=norm(rodrigues(base,norm(v),L.tilt*Math.PI/180));
+  let pos=[0,0,0],t=0;const dt=0.008;let last=v.slice();
+  while(true){
+    const sp=Math.hypot(v[0],v[1],v[2]),omega=omega0*Math.exp(-t/30);
+    const S=sp>0?R*omega/sp:0,Cl=Math.min(0.205,1.7*S),Cd=0.205+0.20*Math.min(S,0.30);
+    const vhat=[v[0]/sp,v[1]/sp,v[2]/sp],q=0.5*RHO*A*sp*sp/M,lift=cross(spinAxis,vhat);
+    const a=[-Cd*q*vhat[0]+Cl*q*lift[0],-Cd*q*vhat[1]+Cl*q*lift[1]-G,-Cd*q*vhat[2]+Cl*q*lift[2]];
+    last=v.slice();
+    v=[v[0]+a[0]*dt,v[1]+a[1]*dt,v[2]+a[2]*dt];pos=[pos[0]+v[0]*dt,pos[1]+v[1]*dt,pos[2]+v[2]*dt];
+    t+=dt;if(pos[1]<=0||t>15)break;
+  }
+  const carry=pos[0]*YD,offline=pos[2]*YD,hsp=Math.hypot(last[0],last[2])||1;
+  const descent=Math.atan2(-last[1],hsp)*180/Math.PI;
+  const roll=Math.max(0,(50-descent))*(L.ballSpeed/150)*1.5;       // ball rolls out in its landing direction
+  return {carry, offline:offline+roll*last[2]/hsp, total:carry+roll*last[0]/hsp};   // carry + final RESTING point (both axes)
+}
+const gauss=()=>{let u=0,w=0;while(!u)u=Math.random();while(!w)w=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*w);};
+// consistency 0..100 (100 = tour) sets the SD of each delivery variable; face is the big lateral driver.
+// Shared by the Monte-Carlo cloud AND the range game so one "hit" uses exactly the same randomness.
+function mcSDs(setup){
+  const c=clamp(consistency,0,100)/100;
+  const _bs=(setup.backswing!=null?setup.backswing:100)/100;
+  const sr=((style==="ven")?0.7:1.0)*(0.7+0.3*_bs);
+  return {faceSD:1.0+(1-c)*5.0*sr, pathSD:1.0+(1-c)*4.0*sr,
+    spdSD:0.018+(1-c)*0.055*sr, smashSD:0.012+(1-c)*0.050*sr,
+    attSD:0.8+(1-c)*4.0*sr, loftSD:0.4+(1-c)*2.5*sr};
+}
+function sampleOne(base,sd){
+  return flightLanding(impact({smash:base.smash*(1+gauss()*sd.smashSD),
+    face:base.face+gauss()*sd.faceSD, path:base.path+gauss()*sd.pathSD,
+    speed:base.speed*(1+gauss()*sd.spdSD), attack:base.attack+gauss()*sd.attSD, loft:base.loft+gauss()*sd.loftSD}));
+}
+function monteCarlo(setup){
+  const base=deriveDelivery(setup);
+  // style risk: the traditional swing is a timing-dependent kinetic chain — a small tempo error scatters
+  // the strike. Venetos has fewer moving parts to mistime, so the SAME skill level holds a tighter pattern.
+  // (scales only the timing-induced variance, not the irreducible floor — so the gap shrinks as skill rises.)
+  // Venetos (fewer moving parts) AND a shorter backswing both cut TIMING-induced error -> a tighter pattern.
+  // That tighter dispersion is the payoff for the distance a short swing gives up (the control-shot trade).
+  const sd=mcSDs(setup);
+  const pts=[];let sx=0,sy=0,sxx=0,syy=0;
+  for(let i=0;i<MC_N;i++){
+    const r=sampleOne(base,sd);
+    pts.push([r.offline,r.total]); sx+=r.offline;sy+=r.total;sxx+=r.offline*r.offline;syy+=r.total*r.total;
+  }
+  const n=MC_N,mx=sx/n,my=sy/n;
+  // you aim the fairway down your own expected shot — so a "fairway hit" is within the corridor centred on the
+  // pattern's mean, NOT the raw target line. This makes fairway% measure repeatability, not the draw's aim offset.
+  let inFw=0; pts.forEach(p=>{if(Math.abs(p[0]-mx)<=fairwayW/2)inFw++;});
+  return {pts,meanOff:mx,meanTotal:my,latSD:Math.sqrt(Math.max(0,sxx/n-mx*mx)),distSD:Math.sqrt(Math.max(0,syy/n-my*my)),fairwayPct:Math.round(inFw/n*100)};
+}
+
+// ============================================================
+//  CONTROLS
+// ============================================================
+const SETUP_SLIDERS=[
+  {key:"aim",    label:"Aim direction", min:-25,max:25,step:1,
+    fmt:v=>v===0?"At target":(v>0?`${v}° right`:`${-v}° left`), hint:"aim the WHOLE setup off the target line — aim right so a big draw falls back to the fairway"},
+  {key:"align",  label:"Stance alignment", min:-20,max:20,step:1,
+    fmt:v=>v===0?"Square":(v<0?`Open ${-v}°`:`Closed ${v}°`), hint:"feet/hips open/closed relative to your aim line (not the target)"},
+  {key:"shoAim", label:"Shoulder alignment",min:-35,max:35,step:1,
+    fmt:v=>v===0?"Square":(v<0?`Open ${-v}°`:`Closed ${v}°`), hint:"shoulders aim — the pivot. Drives club PATH (closed = more inside/draw); in Venetos the closed pivot pairs with a strong grip for a quiet face. Can differ from the feet"},
+  {key:"ballPos",label:"Ball position",    min:-3,max:3,step:.5,
+    fmt:v=>v===0?"Center":(v<0?`Back ${-v}`:`Forward ${v}`), hint:"back = down strike · forward = up strike"},
+  {key:"weight", label:"Weight at address",min:30,max:85,step:1,
+    fmt:v=>`${v}% lead`, hint:"% on lead (target-side) foot"},
+  {key:"stanceWidth",label:"Stance width", min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Narrow ${-v}`:`Wide ${v}`), hint:"wide = steadier but less turn · narrow = more rotation"},
+];
+const GRIP_SLIDERS=[
+  {key:"grip",      label:"Grip strength",  min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Weak ${-v}`:`Strong ${v}`), hint:"strong closes the face (draw) · weak opens it (fade). Venetos uses a strong grip — lead arm in control, trail hand supportive"},
+  {key:"gripPress", label:"Grip pressure",  min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Light ${-v}`:`Tight ${v}`), hint:"tight holds off the release (fade) & adds tension"},
+  {key:"shaftLean", label:"Shaft lean (address)", min:-5,max:5,step:.5,
+    fmt:v=>v===0?"Neutral":(v<0?`Back ${-v}°`:`Forward ${v}°`), hint:"forward press de-lofts & steepens the strike"},
+  {key:"leadWrist", label:"Lead wrist (impact)", min:-10,max:10,step:1,
+    fmt:v=>v===0?"Flat":(v<0?`Cupped ${-v}`:`Bowed ${v}`), hint:"bowed de-lofts & closes (low draw) · cupped adds loft & opens (high fade)"},
+];
+const ARM_SLIDERS=[
+  {key:"trailArm",  label:"Trail elbow (tuck / fly)", min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Tucked ${-v}`:`Flying ${v}`), hint:"tucked = connected, shallow / in-to-out (draw) · flying elbow = steep / over-the-top (fade)"},
+  {key:"armWidth",  label:"Arm width",      min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Narrow ${-v}`:`Wide ${v}`), hint:"a wider arc stores more speed"},
+];
+const POSTURE_SLIDERS=[
+  {key:"tilt",   label:"Spine tilt",        min:0,max:18,step:.5,
+    fmt:v=>`${v}°`, hint:"tilt away from target (secondary axis tilt) → up-strike"},
+  {key:"shoTurn",label:"Shoulder turn",     min:30,max:110,step:1, fmt:v=>`${v}°`, hint:"backswing coil → power"},
+  {key:"headPos",label:"Head position",     min:-5,max:5,step:.5,
+    fmt:v=>v===0?"Centered":(v<0?`Over ${-v}`:`Behind ${v}`), hint:"behind the ball = up-strike · over = down-strike"},
+  {key:"posture",label:"Posture (bend)",     min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Upright ${-v}`:`Bent ${v}`), hint:"bent over = flatter plane (draw) · upright = steep (fade)"},
+  {key:"kneeFlex",label:"Knee flex",         min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Straight ${-v}`:`Flexed ${v}`), hint:"more flex → more ground force → speed"},
+  {key:"spineSide",label:"Side bend (impact)",min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Lead ${-v}`:`Trail ${v}`), hint:"trail-side bend raises the lead shoulder → up-strike"},
+  {key:"hipHinge",label:"Hip depth (squat)", min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`High ${-v}`:`Squat ${v}`), hint:"sitting into transition shallows it → more lag & speed"},
+];
+const SWING_SLIDERS=[
+  {key:"backswing",label:"Backswing length",min:25,max:100,step:5,
+    fmt:v=>v>=100?"Full":`${v}%`, hint:"shorter = less speed/distance but a tighter pattern (a ¾ / ½ / ¼ control swing) — shape stays the same"},
+  {key:"speed",  label:"Club head speed",  min:50,max:135,step:1, fmt:v=>`${v} mph`, hint:"how fast the club moves"},
+  {key:"hipTurn",label:"Hip rotation",     min:20,max:90,step:1, fmt:v=>`${v}° open`, hint:"how much the hips clear through impact"},
+  {key:"release",label:"Release timing",   min:-10,max:10,step:1,
+    fmt:v=>v===0?"Neutral":(v<0?`Early ${-v}`:`Late ${v}`), hint:"early = draw bias · late = fade bias"},
+];
+const GROUPS=[["setupSliders",SETUP_SLIDERS],["gripSliders",GRIP_SLIDERS],["armSliders",ARM_SLIDERS],["postureSliders",POSTURE_SLIDERS],["swingSliders",SWING_SLIDERS]];
+const ALL_SLIDERS=GROUPS.flatMap(g=>g[1]);
+
+// swing styles. Traditional = neutral. Venetos = closed stance, heavy forward weight,
+// quiet hips, compact arms-only motion (set up in the impact position and swing along the body line).
+const STYLES={trad:"Traditional", ven:"Venetos"};
+function makeSetup(c,st){
+  const s=neutralSetup(c);
+  // quiet hips (low hipTurn) already cost some speed in deriveDelivery -- that's the distance trade-off
+  if(st==="ven"){s.align=13; s.shoAim=35; s.weight=80; s.tilt=5; s.hipTurn=15; s.release=0;
+    s.trailArm=-8; s.shaftLean=1.0; s.posture=10; s.grip=5; s.ballPos=1;}   // the BIG push-draw: closed shoulders + tucked trail arm + forward posture build a steep inside path (~28 deg). Jim's signature STRONG GRIP (lead arm in control, trail hand supportive -- it's what the closed pivot arranges) holds the face ~square-to-target, so the ball STARTS a touch RIGHT and the huge inside path over-draws it well LEFT -> aim right ~5 deg to bring it back to target. Weight 80% (stacked forward on the lead side) + ball forward (hands ahead) = his stacked address; together they keep the strike ~level (fwd weight strikes down, fwd ball strikes up) so the driver still launches.
+  else if(st==="trad"){s.shoAim=0;}
+  return s;
+}
+let club="Driver", style="trad", swingView="face";
+let bodyPhase=0.12;        // 3D avatar: held checkpoint phase
+let state=makeSetup(club,style);
+// ---- SAVE MY SWING: restore a saved setup (style, club, all sliders, power, consistency) from localStorage.
+// Runs BEFORE the style/club buttons are built so their active states come out right. Merged over
+// neutralSetup so any keys added in future versions fall back to sane defaults.
+try{
+  const sv=JSON.parse(localStorage.getItem("bf_swing")||"null");
+  if(sv && sv.state && CLUBS[sv.club]){
+    style=(sv.style==="ven")?"ven":"trad"; club=sv.club;
+    power=sv.power||1; consistency=(sv.consistency!=null)?sv.consistency:consistency;
+    fairwayW=(sv.fairwayW!=null)?sv.fairwayW:fairwayW;
+    state=Object.assign(neutralSetup(club), sv.state);
+  }
+}catch(e){/* corrupt save -> stock defaults */}
+
+const stylesEl=document.getElementById("styles");
+Object.keys(STYLES).forEach(k=>{
+  const b=document.createElement("button");
+  b.className="club"+(k===style?" active":"");
+  b.textContent=STYLES[k]; b.onclick=()=>selectStyle(k);
+  stylesEl.appendChild(b);
+});
+const clubsEl=document.getElementById("clubs");
+Object.keys(CLUBS).forEach(name=>{
+  const b=document.createElement("button");
+  b.className="club"+(name===club?" active":"");
+  b.textContent=name;b.onclick=()=>selectClub(name);
+  clubsEl.appendChild(b);
+});
+function selectStyle(k){
+  style=k; state=makeSetup(club,style);
+  [...stylesEl.children].forEach(b=>b.classList.toggle("active",b.textContent===STYLES[k]));
+  buildSliders();buildChart();render(true);
+}
+function selectClub(name){
+  club=name;state=makeSetup(name,style);
+  [...clubsEl.children].forEach(c=>c.classList.toggle("active",c.textContent===name));
+  buildSliders();buildChart();render(true);
+}
+// ---- STOCK YARDAGE CHART: every club at its STYLE-PRESET setup (not your current slider tweaks), scaled
+// by `power`, at Full / 3/4 / 1/2 backswing. Uses the fast landing-only flight. Rebuilt on style/club/power
+// change only — deliberately "stock", so it stays a stable reference while you experiment with the sliders. ----
+function buildChart(){
+  const prev=club; const names=Object.keys(CLUBS); const rows=[];
+  for(const name of names){
+    club=name;
+    const s=makeSetup(name,style);
+    const cols={};
+    for(const bs of [100,75,50]){
+      const d=deriveDelivery(Object.assign({},s,{backswing:bs}));
+      const f=flightLanding(impact(d));
+      cols[bs]={carry:Math.round(f.carry), total:Math.round(f.total)};
+    }
+    rows.push({name,cols});
+  }
+  club=prev;
+  document.getElementById("chartBadge").innerHTML=
+    `<span class="shape"><span class="dot" style="background:${style==="ven"?"#f0b429":"#7fe3b4"}"></span>${STYLES[style]} · driver ${Math.round(110*power)} mph</span>`;
+  document.getElementById("yardTable").innerHTML=
+    `<table class="yt"><thead><tr><th>Club</th><th>Carry</th><th>Total</th><th>¾ carry</th><th>½ carry</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr class="${r.name===club?"cur":""}"><td>${r.name}</td>`+
+      `<td>${r.cols[100].carry}</td><td>${r.cols[100].total}</td>`+
+      `<td>${r.cols[75].carry}</td><td>${r.cols[50].carry}</td></tr>`).join("")+
+    `</tbody></table>`;
+}
+function buildGroup(el,defs){
+  el.innerHTML="";
+  defs.forEach(s=>{
+    const wrap=document.createElement("div");wrap.className="ctrl";
+    wrap.innerHTML=`<div class="top"><label>${s.label}</label><span class="val" id="val-${s.key}"></span></div>
+      <input type="range" id="rng-${s.key}" min="${s.min}" max="${s.max}" step="${s.step}" value="${state[s.key]}">
+      <div class="hint">${s.hint}</div>`;
+    el.appendChild(wrap);
+    wrap.querySelector("input").addEventListener("input",e=>{state[s.key]=parseFloat(e.target.value);render(false);});
+  });
+}
+function buildSliders(){
+  GROUPS.forEach(g=>buildGroup(document.getElementById(g[0]),g[1]));
+  syncVals();
+}
+function syncVals(){
+  ALL_SLIDERS.forEach(s=>{
+    document.getElementById("rng-"+s.key).value=state[s.key];
+    document.getElementById("val-"+s.key).textContent=s.fmt(state[s.key]);
+  });
+}
+document.getElementById("reset").onclick=()=>selectStyle(style);
+document.getElementById("saveSwing").onclick=function(){
+  localStorage.setItem("bf_swing", JSON.stringify({state, club, style, power, consistency, fairwayW}));
+  this.textContent="✓ Saved — loads automatically next visit";
+  setTimeout(()=>{this.textContent="💾 Save my swing";},1800);
+};
+
+// ============================================================
+//  RENDER
+// ============================================================
+let cur=null,deliv=null,lastMc=null;
+function render(replay){
+  syncVals();
+  const main=computeShot(state);
+  deliv=main.d; const L=main.L; cur=main.f;
+
+  const LR=(v,u)=>Math.abs(v)<0.5?"on line":Math.abs(v).toFixed(u||0)+(v>0?" R":" L");
+  const startLat=cur.carry*Math.tan(L.startDir*Math.PI/180);
+  const sh=shapeOf(cur.offline-startLat);
+  const mc=monteCarlo(state); lastMc=mc;
+  // stats categorized by the physics pipeline: (delivery in the sidebar) -> launch -> flight -> result
+  const it=(l,v,u,big)=>`<div class="si${big?" big":""}"><span class="sl">${l}</span><span class="sv">${v}<small>${u||""}</small></span></div>`;
+  const sg=(t,sub,items)=>`<div class="sg"><div class="h">${t} <em>· ${sub}</em></div><div class="r">${items}</div></div>`;
+  document.getElementById("stats").innerHTML=
+    sg("Launch","ball leaves the face",
+      it("Ball speed",L.ballSpeed.toFixed(0)," mph")+
+      it("Launch",L.vLaunch.toFixed(1),"°")+
+      it("Start dir",LR(L.startDir,1),"")+
+      it("Backspin",L.backspin.toFixed(0)," rpm"))+
+    sg("Flight","in the air",
+      it("Carry",cur.carry.toFixed(0)," yds",1)+
+      it("Apex",cur.height.toFixed(0)," yds")+
+      it("Descent",cur.descent.toFixed(0),"°")+
+      `<div class="si"><span class="sl">Shape</span><span class="sv" style="color:${sh.col}">${sh.name}</span></div>`)+
+    sg("Result","on the ground",
+      it("Total",cur.total.toFixed(0)," yds",1)+
+      it("Finish",LR(cur.restOffline),Math.abs(cur.restOffline)<0.5?"":" yds")+
+      it("Fairway",mc.fairwayPct,"%"));
+  document.getElementById("shapeBadge").innerHTML=`<span class="shape"><span class="dot" style="background:${sh.col}"></span>${sh.name}</span>`;
+  document.getElementById("delivChips").innerHTML=
+    chip("Club path",fmtDeg(deliv.path),deliv.path>0.3?"in-out":deliv.path<-0.3?"out-in":"square")+
+    chip("Face",fmtDeg(deliv.face),deliv.face>0.3?"open":deliv.face<-0.3?"closed":"square")+
+    chip("Attack",fmtDeg(deliv.attack),deliv.attack>0?"up":"down")+
+    chip("Dyn. loft",deliv.loft.toFixed(1)+"°","")+
+    chip("Speed",deliv.speed.toFixed(0),"mph");
+
+  // comparison readout
+  drawSide(cur,replay?0:1);drawTop(cur,replay?0:1);
+  drawSwing(deliv,state,bodyPhase);drawSetupTop(state,deliv,L.startDir);
+  drawDispersion(mc);
+  document.getElementById("dispBadge").innerHTML=`<span class="shape"><span class="dot" style="background:${mc.fairwayPct>=60?'#39d98a':mc.fairwayPct>=35?'#f0b429':'#ef8354'}"></span>${mc.fairwayPct}% fairway</span>`;
+  if(replay)masterReplay();
+}
+const chip=(k,v,note)=>`<span class="chip">${k} <b>${v}</b>${note?" "+note:""}</span>`;
+const fmtDeg=v=>(v>0?"+":"")+v.toFixed(1)+"°";
+
+// ---- canvases ----
+const sideC=document.getElementById("side"),sideX=sideC.getContext("2d");
+const topC=document.getElementById("top"),topX=topC.getContext("2d");
+const swingC=document.getElementById("swing"),swingX=swingC.getContext("2d");
+const setupC=document.getElementById("setup"),setupX=setupC.getContext("2d");
+const dispC=document.getElementById("disp"),dispX=dispC.getContext("2d");
+function fit(c,H){H=H||280;const w=c.parentElement.clientWidth,dpr=window.devicePixelRatio||1;
+  c.width=w*dpr;c.height=H*dpr;c.style.height=H+"px";c.getContext("2d").setTransform(dpr,0,0,dpr,0,0);return w;}
+function ball(ctx,x,y){ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.fillStyle="#fff";ctx.fill();
+  ctx.beginPath();ctx.arc(x,y,5,0,7);ctx.strokeStyle="rgba(0,0,0,.25)";ctx.lineWidth=1;ctx.stroke();}
+
+function drawSide(d,prog){
+  const w=fit(sideC,280),h=280,padL=42,padR=20,padB=30,padT=16;
+  const maxX=Math.max(260,d.total*1.08),maxY=Math.max(45,d.height*1.25);
+  const sx=v=>(w-padR)-v/maxX*(w-padL-padR),sy=v=>(h-padB)-v/maxY*(h-padB-padT);  // tee at right, target left
+  const g=sideX.createLinearGradient(0,0,0,h);g.addColorStop(0,"#0c1c2c");g.addColorStop(1,"#10283a");
+  sideX.fillStyle=g;sideX.fillRect(0,0,w,h);
+  sideX.fillStyle="#143d22";sideX.fillRect(0,h-padB,w,padB);
+  sideX.strokeStyle="#1f7a3d";sideX.lineWidth=2;sideX.beginPath();sideX.moveTo(0,h-padB);sideX.lineTo(w,h-padB);sideX.stroke();
+  sideX.font="10px sans-serif";sideX.textAlign="center";
+  for(let yd=50;yd<maxX;yd+=50){sideX.strokeStyle="rgba(255,255,255,.06)";sideX.lineWidth=1;
+    sideX.beginPath();sideX.moveTo(sx(yd),padT);sideX.lineTo(sx(yd),h-padB);sideX.stroke();
+    sideX.fillStyle="#5f7466";sideX.fillText(yd,sx(yd),h-padB+14);}
+  sideX.textAlign="right";
+  for(let ht=20;ht<maxY;ht+=20){sideX.fillStyle="#5f7466";sideX.fillText(ht+"yd",padL-6,sy(ht)+3);}
+  sideX.textAlign="left";sideX.fillStyle="rgba(255,255,255,.4)";sideX.font="10px sans-serif";sideX.fillText("◄ target",padL,padT+9);
+  const g0=h-padB;                                                  // ground line (y=0)
+  const n=Math.max(2,Math.floor(d.pts.length*prog));
+  sideX.strokeStyle="#39d98a";sideX.lineWidth=2.5;sideX.beginPath();
+  for(let i=0;i<n;i++){const p=d.pts[i];i?sideX.lineTo(sx(p[0]),sy(p[1])):sideX.moveTo(sx(p[0]),sy(p[1]));}
+  sideX.stroke();
+  if(prog<1){const bp=d.pts[Math.min(n-1,d.pts.length-1)];ball(sideX,sx(bp[0]),sy(bp[1]));}
+  else{
+    // roll-out along the ground: landing (carry) -> resting (total)
+    sideX.strokeStyle="rgba(57,217,138,.55)";sideX.lineWidth=2;sideX.setLineDash([2,4]);
+    sideX.beginPath();sideX.moveTo(sx(d.carry),g0);sideX.lineTo(sx(d.total),g0);sideX.stroke();sideX.setLineDash([]);
+    sideX.strokeStyle="rgba(255,255,255,.3)";sideX.lineWidth=1;sideX.beginPath();sideX.moveTo(sx(d.carry),g0-4);sideX.lineTo(sx(d.carry),g0+3);sideX.stroke();
+    ball(sideX,sx(d.total),g0-3);
+    if(d.total-d.carry>4){sideX.fillStyle="#5f8f72";sideX.textAlign="center";sideX.font="9px sans-serif";sideX.fillText("roll",(sx(d.carry)+sx(d.total))/2,g0-7);}
+    let ai=0;for(let i=0;i<d.pts.length;i++)if(d.pts[i][1]>d.pts[ai][1])ai=i;
+    sideX.fillStyle="#9fb3a6";sideX.textAlign="center";sideX.font="11px sans-serif";
+    sideX.fillText(d.height.toFixed(0)+" yd apex",sx(d.pts[ai][0]),sy(d.pts[ai][1])-8);}
+}
+// overhead trajectory for a RH golfer: target to the LEFT, ball travels right -> left.
+// lateral: +z (right of target) is up, -z (left) is down.
+function drawTop(d,prog){
+  const w=fit(topC,280),h=280,padL=16,padR=44,cy=h/2;
+  const maxX=Math.max(260,d.total*1.08);
+  const latOf=f=>{let m=0;f.pts.forEach(p=>m=Math.max(m,Math.abs(p[2])));return m;};
+  const maxLat=Math.max(9,latOf(d)*1.5);
+  const sx=v=>(w-padR)-v/maxX*(w-padL-padR);     // downrange: 0 (ball) at right, target at left
+  const sz=z=>cy-z/maxLat*(h*0.40);              // +z (right of target) up
+  topX.fillStyle="#0e1a14";topX.fillRect(0,0,w,h);
+  topX.fillStyle="rgba(31,122,61,.15)";topX.fillRect(0,sz(12),w,sz(-12)-sz(12));        // fairway band
+  topX.strokeStyle="rgba(255,255,255,.2)";topX.lineWidth=1;topX.setLineDash([5,6]);     // target line
+  topX.beginPath();topX.moveTo(sx(0),cy);topX.lineTo(sx(maxX),cy);topX.stroke();topX.setLineDash([]);
+  topX.fillStyle="rgba(255,255,255,.45)";topX.font="10px sans-serif";topX.textAlign="left";topX.fillText("◄ target",sx(maxX)+4,cy-5);
+  topX.textAlign="center";
+  for(let yd=50;yd<maxX;yd+=50){topX.strokeStyle="rgba(255,255,255,.05)";
+    topX.beginPath();topX.moveTo(sx(yd),16);topX.lineTo(sx(yd),h-16);topX.stroke();
+    topX.fillStyle="#5f7466";topX.fillText(yd,sx(yd),h-5);}
+  topX.fillStyle="#43564b";topX.textAlign="right";
+  topX.fillText("R",w-6,sz(maxLat*0.82)+4);topX.fillText("L",w-6,sz(-maxLat*0.82)+4);
+  const n=Math.max(2,Math.floor(d.pts.length*prog));
+  topX.strokeStyle="#39d98a";topX.lineWidth=2.5;topX.beginPath();
+  for(let i=0;i<n;i++){const p=d.pts[i];i?topX.lineTo(sx(p[0]),sz(p[2])):topX.moveTo(sx(p[0]),sz(p[2]));}
+  topX.stroke();
+  if(prog<1){const bp=d.pts[Math.min(n-1,d.pts.length-1)];ball(topX,sx(bp[0]),sz(bp[2]));}
+  else{
+    // roll-out to the resting point (carry,offline) -> (total,restOffline)
+    topX.strokeStyle="rgba(57,217,138,.55)";topX.lineWidth=2;topX.setLineDash([2,4]);
+    topX.beginPath();topX.moveTo(sx(d.carry),sz(d.offline));topX.lineTo(sx(d.total),sz(d.restOffline));topX.stroke();topX.setLineDash([]);
+    topX.strokeStyle="rgba(255,255,255,.3)";topX.lineWidth=1;topX.beginPath();topX.moveTo(sx(d.carry),sz(d.offline)-4);topX.lineTo(sx(d.carry),sz(d.offline)+4);topX.stroke();
+    ball(topX,sx(d.total),sz(d.restOffline));}
+}
+
+// down-the-fairway landing scatter + dispersion ellipse + fairway %
+function drawDispersion(mc){
+  const w=fit(dispC,320),h=320,padT=14,padB=24,cx=w/2;
+  let maxOff=fairwayW*0.7; mc.pts.forEach(p=>maxOff=Math.max(maxOff,Math.abs(p[0])));
+  if(range.on)range.shots.forEach(s=>maxOff=Math.max(maxOff,Math.abs(s.o)));
+  const maxLat=maxOff*1.12;                                          // zoom the distance axis to the landing zone
+  let dMax=mc.meanTotal+Math.max(28,3*mc.distSD), dMin=Math.max(0,mc.meanTotal-Math.max(75,4*mc.distSD));
+  if(range.on)range.shots.forEach(s=>{dMax=Math.max(dMax,s.t+12);dMin=Math.max(0,Math.min(dMin,s.t-12));});
+  const sx=o=>cx+o/maxLat*(w/2-26), sy=di=>(h-padB)-(di-dMin)/(dMax-dMin)*(h-padB-padT);
+  dispX.fillStyle="#0e1a14";dispX.fillRect(0,0,w,h);
+  const fc=mc.meanOff;                                               // fairway is aimed down the expected shot
+  dispX.fillStyle="rgba(31,122,61,.16)";dispX.fillRect(sx(fc-fairwayW/2),padT,sx(fc+fairwayW/2)-sx(fc-fairwayW/2),h-padB-padT);   // fairway
+  dispX.strokeStyle="rgba(57,217,138,.22)";dispX.lineWidth=1;
+  [fc-fairwayW/2,fc+fairwayW/2].forEach(o=>{dispX.beginPath();dispX.moveTo(sx(o),padT);dispX.lineTo(sx(o),h-padB);dispX.stroke();});
+  dispX.strokeStyle="rgba(255,255,255,.18)";dispX.setLineDash([5,6]);                                                   // target line
+  dispX.beginPath();dispX.moveTo(cx,padT);dispX.lineTo(cx,h-padB);dispX.stroke();dispX.setLineDash([]);
+  dispX.font="10px sans-serif";dispX.textAlign="left";
+  for(let yd=Math.ceil(dMin/25)*25;yd<dMax;yd+=25){dispX.strokeStyle="rgba(255,255,255,.05)";
+    dispX.beginPath();dispX.moveTo(0,sy(yd));dispX.lineTo(w,sy(yd));dispX.stroke();
+    dispX.fillStyle="#5f7466";dispX.fillText(yd+"yd",4,sy(yd)-3);}
+  dispX.fillStyle="rgba(255,255,255,.4)";dispX.textAlign="center";dispX.fillText("▲ target line",cx,padT+9);
+  if(range.on){
+    // RANGE GAME: your actual balls, one per swing — latest ball ringed
+    range.shots.forEach((s,i)=>{const last=i===range.shots.length-1;
+      dispX.fillStyle=s.fw?`rgba(57,217,138,${last?.95:.55})`:`rgba(240,180,41,${last?.95:.6})`;
+      dispX.beginPath();dispX.arc(sx(s.o),sy(s.t),last?4:2.6,0,7);dispX.fill();
+      if(last){dispX.strokeStyle="rgba(255,255,255,.75)";dispX.lineWidth=1.3;
+        dispX.beginPath();dispX.arc(sx(s.o),sy(s.t),7.5,0,7);dispX.stroke();}});
+    const n=range.shots.length, pct=n?Math.round(range.fw/n*100):0;
+    dispX.textAlign="left";dispX.font="600 12px sans-serif";dispX.fillStyle="#39d98a";
+    dispX.fillText(n?`${n} ball${n>1?"s":""} · ${range.fw} in the fairway (${pct}%)`:"press SPACE (or Hit) to hit balls",12,h-9);
+    dispX.textAlign="right";dispX.font="11px sans-serif";dispX.fillStyle="#9fb3a6";
+    dispX.fillText(`streak ${range.streak} · best ${range.best}`,w-12,h-9);
+  }else{
+    mc.pts.forEach(p=>{dispX.fillStyle=Math.abs(p[0]-fc)<=fairwayW/2?"rgba(57,217,138,.5)":"rgba(240,180,41,.6)";
+      dispX.beginPath();dispX.arc(sx(p[0]),sy(p[1]),2.3,0,7);dispX.fill();});
+    // average resting point (small ring, not a statistical ellipse)
+    const ex=sx(mc.meanOff),ey=sy(mc.meanTotal);
+    dispX.strokeStyle="rgba(255,255,255,.8)";dispX.lineWidth=1.5;dispX.beginPath();dispX.arc(ex,ey,4,0,7);dispX.stroke();
+    dispX.textAlign="left";dispX.font="600 12px sans-serif";dispX.fillStyle="#39d98a";
+    dispX.fillText(mc.fairwayPct+"% in a "+fairwayW+"-yd fairway",12,h-9);
+    dispX.textAlign="right";dispX.font="11px sans-serif";dispX.fillStyle="#9fb3a6";
+    dispX.fillText("lateral ±"+Math.round(mc.latSD)+" yd · carry+roll "+Math.round(mc.meanTotal)+" ±"+Math.round(mc.distSD),w-12,h-9);
+  }
+}
+// ---- RANGE GAME: one ball per swing, same randomness as the Monte-Carlo, pattern builds shot by shot ----
+let range={on:false,shots:[],fw:0,streak:0,best:0};
+function rangeHit(){
+  if(!range.on||!lastMc)return;
+  const r=sampleOne(deriveDelivery(state), mcSDs(state));
+  const inFw=Math.abs(r.offline-lastMc.meanOff)<=fairwayW/2;   // same corridor the view draws (aimed down the expected shot)
+  range.shots.push({o:r.offline,t:r.total,fw:inFw});
+  if(inFw){range.fw++;range.streak++;range.best=Math.max(range.best,range.streak);}else range.streak=0;
+  drawDispersion(lastMc);
+}
+document.getElementById("rangeBtn").onclick=function(){
+  range.on=!range.on;
+  if(range.on){range.shots=[];range.fw=0;range.streak=0;range.best=0;}
+  this.textContent=range.on?"■ End session":"Range game";
+  this.classList.toggle("active",range.on);
+  document.getElementById("hitBtn").style.display=range.on?"":"none";
+  this.blur(); if(lastMc)drawDispersion(lastMc);
+};
+document.getElementById("hitBtn").onclick=function(){this.blur();rangeHit();};
+document.addEventListener("keydown",e=>{
+  if(!range.on||e.code!=="Space")return;
+  const t=document.activeElement; if(t&&t.blur)t.blur();   // don't let space re-click a focused button
+  e.preventDefault(); rangeHit();
+});
+
+// ============================================================
+//  3D BODY AVATAR  (rotatable · checkpoint inspector)
+//  ported & extended from the _body3d prototype (double-pendulum swing).
+//  poseAt() now also reflects the granular setup controls so you can
+//  SEE where each style puts the body. Self-contained module (its own
+//  object-based vec math so it never clashes with the array-based
+//  vectors used by the flight physics).
+// ============================================================
+const smooth=u=>u*u*(3-2*u);
+const easeOut=u=>1-(1-u)*(1-u);
+const easeIn=u=>u*u;
+function sched(p,k){if(p<=k[0][0])return k[0][1];
+  for(let i=1;i<k.length;i++){if(p<=k[i][0]){const u=(p-k[i-1][0])/(k[i][0]-k[i-1][0]);return k[i-1][1]+(k[i][1]-k[i-1][1])*u;}}
+  return k[k.length-1][1];}
+const CHECKPTS=[["Address",0.12],["Top",0.45],["Impact",0.605],["Finish",1.0]];
+
+const Body3D=(function(){
+  const sub=(a,b)=>({x:a.x-b.x,y:a.y-b.y,z:a.z-b.z}), add=(a,b)=>({x:a.x+b.x,y:a.y+b.y,z:a.z+b.z});
+  const scl=(a,s)=>({x:a.x*s,y:a.y*s,z:a.z*s}), dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
+  const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+  const len=a=>Math.hypot(a.x,a.y,a.z), norm=a=>{const l=len(a)||1;return scl(a,1/l);}, V=(x,y,z)=>({x,y,z});
+  const mid=(a,b)=>scl(add(a,b),0.5), D2R=Math.PI/180;
+  const lerp3=(a,b,t)=>add(a,scl(sub(b,a),t));
+  const rotY=(p,a)=>{const c=Math.cos(a),s=Math.sin(a);return V(p.x*c+p.z*s,p.y,-p.x*s+p.z*c);};
+  const rotYAbout=(p,piv,a)=>add(piv,rotY(sub(p,piv),a));
+  function ik2(S,G,L1,L2,pole){
+    const SG=sub(G,S); let d=len(SG); d=Math.max(1e-4,Math.min(d,L1+L2-1e-3)); const dir=scl(SG,1/(len(SG)||1));
+    let a=(d*d+L1*L1-L2*L2)/(2*d); a=Math.max(-L1,Math.min(L1,a));
+    const h=Math.sqrt(Math.max(0,L1*L1-a*a)), base=add(S,scl(dir,a));
+    let perp=sub(pole,scl(dir,dot(pole,dir))); if(len(perp)<1e-5)perp=sub(V(0,-1,0),scl(dir,dot(V(0,-1,0),dir)));
+    return add(base,scl(norm(perp),h));
+  }
+  // ANATOMY GUARANTEE: for a given shoulder S and hand G, the set of valid elbow positions is a CIRCLE
+  // (upper arm exactly L1, forearm exactly L2, extension hard-capped at straight — never hyperextended).
+  // Pins/poles may only choose WHERE on the circle the elbow sits (the swivel); this projects any desired
+  // elbow position onto that circle, making bone-stretch / impossible folds geometrically impossible.
+  function elbCircle(S,G,L1,L2,want){
+    const SG=sub(G,S); let d=len(SG); const dir=scl(SG,1/(d||1));
+    d=Math.max(Math.abs(L1-L2)+1e-3, Math.min(d, L1+L2-1e-3));
+    const a=(d*d+L1*L1-L2*L2)/(2*d), h=Math.sqrt(Math.max(0,L1*L1-a*a)), c=add(S,scl(dir,a));
+    let p=sub(want,c); p=sub(p,scl(dir,dot(p,dir)));
+    if(len(p)<1e-5)p=sub(V(0,-1,0),scl(dir,dot(V(0,-1,0),dir)));
+    return add(c,scl(norm(p),h));
+  }
+  const cam={az:0, el:0.06, dist:2.75, T:V(0.02,0.92,0.06), f:0};
+  let W=0,H=0;
+  function project(p){
+    const camDir=V(Math.sin(cam.az)*Math.cos(cam.el),Math.sin(cam.el),Math.cos(cam.az)*Math.cos(cam.el));
+    const C=add(cam.T,scl(camDir,cam.dist)), fwd=norm(sub(cam.T,C));
+    const right=norm(cross(fwd,V(0,1,0))), up=cross(right,fwd), rel=sub(p,C);
+    const d=Math.max(0.05,dot(rel,fwd));
+    return {x:W/2+cam.f*dot(rel,right)/d, y:H/2-cam.f*dot(rel,up)/d, z:d, s:cam.f/d};
+  }
+
+  // ---------- parametrised pose: prototype swing + body-detail modifiers ----------
+  function poseAt(style,s,deliv,ph){
+    const ven=style==="ven"; s=s||{}; const g=k=>s[k]||0;
+    // BACKSWING LENGTH: scale a swing schedule's amplitude by _bs — pull the backswing keyframes (0.12<ph<0.59)
+    // toward ADDRESS (a shorter, less-wound top) and the follow-through (ph>0.61) toward IMPACT (a naturally
+    // abbreviated finish, "9-to-3"). Impact (ph~0.60) is untouched, so the club still delivers to the ball.
+    const _bs=(s.backswing!=null?s.backswing:100)/100;
+    const bsK=k=>{ if(_bs>=0.999)return k; let imp=k[0][1];
+      for(const kf of k){ if(kf[0]>0.59&&kf[0]<0.61){imp=kf[1];break;} }
+      return k.map(kf=> kf[0]>0.12&&kf[0]<0.59 ? [kf[0], k[0][1]+(kf[1]-k[0][1])*_bs]
+                      : kf[0]>0.61 ? [kf[0], imp+(kf[1]-imp)*_bs] : kf); };
+    const spineBase=sched(ph,[[.12,42],[.45,40],[.60,42],[1,15]]);
+    const spineTilt=(spineBase + g('posture')*0.7 + g('hipHinge')*0.45)*D2R;
+    const hipT=sched(ph, bsK(ven?[[.12,0],[.45,-6],[.60,16],[1,52]]:[[.12,0],[.45,-45],[.60,42],[1,86]]))*D2R;
+    const shoT=sched(ph, bsK(ven?[[.12,0],[.45,-24],[.60,-2],[1,44]]:[[.12,0],[.45,-92],[.60,-14],[1,82]]))*D2R;
+    const swayBase=ven?sched(ph,bsK([[.12,.02],[.60,.03],[1,.06]])):sched(ph,bsK([[.12,0],[.3,-.05],[.45,-.08],[.55,.04],[.60,.07],[1,.15]]));   // bsK: a punch swing doesn't make the full lateral shift
+    const wsh=(g('weight')-50)*0.0045;                       // forward/lead weight -> body shifts toward lead (+x)
+    const sway=swayBase+wsh;
+    const sink=g('kneeFlex')*0.004 + g('hipHinge')*0.003;    // squat down
+    const sw=1+g('stanceWidth')*0.02;                        // stance width
+    // FINISH blend: post up out of the address squat — body rises as the lead leg straightens.
+    // Venetos's anchored finish is more abbreviated, so it posts up less.
+    const fin=(ph>0.72?smooth(Math.min(1,(ph-0.72)/0.28)):0)*(ven?0.75:1)*(0.35+0.65*_bs);   // a punch barely posts up
+    const P={};
+    const pelvis=V(sway,0.93-sink*0.5+0.05*fin,-0.05); P.pelvis=pelvis;
+    P.hipL=add(pelvis,rotY(V(0.11*sw,0,0.02),hipT)); P.hipR=add(pelvis,rotY(V(-0.11*sw,0,0.02),hipT));
+    P.footL=V(0.165*sw,0.025,0.16);P.footR=V(-0.165*sw,0.025,0.16);
+    P.ankL=V(0.17*sw,0.10-sink,0.0);P.ankR=V(-0.17*sw,0.10-sink,0.0);
+    P.kneeL=V(0.16*sw,0.50-sink,0.10+sink*0.4);P.kneeR=V(-0.16*sw,0.50-sink,0.10+sink*0.4);
+    const sideBase=(ven?sched(ph,[[.12,3],[.6,7],[1,1]]):sched(ph,[[.12,6],[.45,3],[.60,17],[.8,11],[1,1]]));
+    const sideT=(sideBase + g('spineSide')*0.6)*D2R;
+    const ct=Math.cos(spineTilt);
+    const sd=norm(V(-ct*Math.sin(sideT),ct*Math.cos(sideT),Math.sin(spineTilt)));
+    let S=add(pelvis,scl(sd,0.52)); P.S=S;
+    P.shoL=add(S,rotY(V(0.20,0,0),shoT)); P.shoR=add(S,rotY(V(-0.20,0,0),shoT));
+    P.neck=add(S,scl(sd,0.05)); P.head=add(add(S,scl(sd,0.17)), V(-g('headPos')*0.012,0,0));
+    let SC=add(pelvis,scl(sd,0.50));
+    // ---- aim: feet/hips by stance, shoulders + swing-centre/plane SEPARATELY (shoulders can be more
+    //      closed than the feet -> the torso pre-coils, and the club path follows the shoulders) ----
+    const piv=V(pelvis.x,0,0.05);
+    const aimW=(-g('aim'))*0.9*D2R;   // AIM: rotate the WHOLE golfer + swing plane off the target line
+    const aimF=aimW+(-g('align'))*0.9*D2R, aimS=aimW+(-(s.shoAim!=null?s.shoAim:g('align')))*0.9*D2R;
+    ["hipL","hipR","footL","footR","ankL","ankR","kneeL","kneeR"].forEach(k=>{P[k]=rotYAbout(P[k],piv,aimF);});
+    ["S","shoL","shoR","neck","head"].forEach(k=>{P[k]=rotYAbout(P[k],piv,aimS);});
+    P.SC=SC;
+    // ---- club swings on the inclined plane that CONTAINS the CLUB-PATH line (in-to-out by deliv.path), NOT the
+    //      target line — this is what makes the 3D clubhead trace visibly come from the inside on a closed/aimed
+    //      setup, matching the setup-view path arrow. deliv.path already folds in shoAim + align + aim + details. ----
+    const ball=V(0.10,0.04,0.50);
+    const pl=(deliv?deliv.path:0)*D2R;
+    const tl=V(Math.cos(pl),0,Math.sin(pl));             // target line rotated by the club path: in-to-out(+) exits toward target & OUTWARD (+z)
+    const e1=norm(sub(ball,SC)); const n=norm(cross(e1,tl)); const e2=norm(cross(n,e1));
+    const pdir=psi=>add(scl(e1,Math.cos(psi)),scl(e2,Math.sin(psi)));
+    // Venetos ARM swing is COMPACT (hands stay low, wrists supply the length): a big hand arc is what drags
+    // the trail elbow around — the elbow rides the circle of valid positions that follows the hands, so no
+    // pin can hold it still under a tall arc. Shrinking psiG (and adding cock below) quiets the elbow.
+    const psiG=sched(ph, bsK(ven?[[.12,0],[.45,-80],[.55,-45],[.60,0],[1,106]]:[[.12,0],[.45,-172],[.55,-95],[.60,0],[1,150]]))*D2R;
+    P.grip=add(SC,scl(pdir(psiG),0.55));   // near-full arm hang: arms are ~straight at address & impact (0.46 left the elbows visibly bent)
+    // ---- ARMS. elbCircle guarantees valid geometry (exact bone lengths, no hyperextension); the only real
+    // freedom is the SWIVEL — where the elbow points around the shoulder→hand axis. Anatomy rule (per the
+    // joint-constraint spec): elbows point DOWN + slightly OUT (own side) + slightly CHEST-FORWARD, in the
+    // BODY's frame — valid at every phase, rotates with the shoulders (so it can't break post-impact), and
+    // the out/forward components keep the pole well-conditioned when the arm goes vertical (no flipping).
+    const lerp3=(a,b,t)=>add(a,scl(sub(b,a),t));
+    const lat=norm(sub(P.shoL,P.shoR)), bfwd=norm(cross(lat,V(0,1,0)));       // shoulder-line frame (turns with body)
+    const rel=ph>0.62?smooth(Math.min(1,(ph-0.62)/0.16)):0;                   // post-impact: trail pin releases
+    const relL=ph>0.68?smooth(Math.min(1,(ph-0.68)/0.12)):0;                  // follow-through: lead pin ramps in (full by ~0.80)
+    // chest bias is BACKWARD (−bfwd): a real elbow points down & slightly BEHIND the chest plane — never
+    // ahead of it (ahead = chicken-wing). Also keeps the pole ⊥ to the shoulder→hand axis post-impact.
+    const poleL=norm(add(add(V(0,-1,0),scl(lat, 0.45)),scl(bfwd,-0.25)));
+    // trail-elbow azimuth: a STABLE horizontal lean in the body frame (trail-side, slightly behind the chest).
+    // Pure "straight down" is ill-conditioned near the top — the shoulder->hand axis goes ~vertical there, so a
+    // down-only want has ~no perpendicular part and the elbow's azimuth flips frame to frame (the wag the user
+    // saw as a flying elbow). A non-vanishing horizontal bias that rotates WITH the torso keeps it steady.
+    const hR=norm(add(scl(lat,-0.62),scl(bfwd,-0.38)));
+    const poleR=norm(add(add(V(0,-1,0),scl(hR,0.55)), V(0,g('trailArm')*0.12,0)));  // down + stable lean; flying-elbow slider lifts it
+    const ikElbL=ik2(P.shoL,P.grip,0.29,0.28, poleL);
+    const ikElbR=ik2(P.shoR,P.grip,0.29,0.28, poleR);
+    // RIB-HUG PINS (user's model): each elbow hugs the ribs as its arm passes the body — trail during the
+    // backswing/downswing (releases after impact), lead in the follow-through (ramps in after extension).
+    const pinElbL=add(P.shoL, scl(norm(add(add(V(0,-1,0),scl(lat,0.30)),scl(bfwd,-0.20))),0.29));   // hug = behind the chest plane, never ahead
+    const pinElbR=add(P.shoR, scl(norm(add(V(0,-1,0),scl(hR,0.65))),0.29));   // trail UPPER ARM hangs DOWN from the shoulder with a firm stable body-frame lean (trail-rear). The lean must DOMINATE the projection mid-swing (where the bent arm has freedom) or the azimuth chases the hand arc; at address/impact the near-straight arm ignores the pin anyway, so the lean doesn't distort those.
+    const pinAmt=Math.max(0, 0.94-Math.max(0,g('trailArm'))*0.09)*(1-rel);   // hug the ribs the WHOLE backswing/downswing; flying-elbow slider un-pins it
+    P.elbL=elbCircle(P.shoL,P.grip,0.29,0.28, lerp3(ikElbL, pinElbL, 0.68*relL));   // pins = swivel hints only
+    P.elbR=elbCircle(P.shoR,P.grip,0.29,0.28, lerp3(ikElbR, pinElbR, pinAmt));
+    const cock=sched(ph, bsK(ven?[[.12,0],[.45,-124],[.55,-100],[.58,-52],[.60,-3],[.72,28],[1,70]]:[[.12,0],[.45,-90],[.55,-84],[.58,-48],[.60,-3],[.72,32],[1,76]]))*D2R;
+    P.clubhead=add(P.grip, scl(pdir(psiG+cock), 0.75));   // grip 0.55 + club 0.75 = 1.30 total radius -> clubhead still meets the ball at impact
+    P.butt=add(P.grip, scl(pdir(psiG+cock), -0.05));        // butt end pokes out above the top hand
+    const heel=ven?sched(ph,bsK([[.6,0],[.85,0.05],[1,0.16]])):sched(ph,bsK([[.6,0],[.75,0.06],[1,0.24]]));   // bsK: punch finish keeps the trail heel low (knee kick scales with it too)
+    // TRAIL FOOT pivots about the planted toe IN ITS OWN VERTICAL PLANE: the toe keeps pointing where the
+    // toes point and the heel rises straight up behind it (a pivoting foot does NOT spin on its tip).
+    // Polar-rotate the address ankle-toe vector about the toe by the lift angle; length is preserved by
+    // construction, and the angle is capped just short of vertical so the heel stays slightly behind the toe.
+    {const v0=sub(P.ankR,P.footR), r0=len(v0);
+     let hz=V(v0.x,0,v0.z); const hl=len(hz); const hd=hl>1e-5?scl(hz,-1/hl):V(0,0,1);   // heel->toe heading
+     const th=Math.max(Math.atan2(v0.y,-hl)-heel*4.0, 1.75);
+     P.ankR=add(P.footR, add(scl(hd, r0*Math.cos(th)), V(0, r0*Math.sin(th), 0)));}
+    P.kneeR=V(P.kneeR.x+heel*0.6,P.kneeR.y+heel*0.12,P.kneeR.z+heel*0.3);   // trail knee kicks in toward the lead
+    // FINISH legs: post up on a STRAIGHT lead leg (knee pulled onto the hip->ankle line) while the trail
+    // knee drives in beside it — "knees together", only the trail toe down, body tall over the lead foot.
+    if(fin>0){
+      P.kneeL=lerp3(P.kneeL, lerp3(P.hipL,P.ankL,0.52), 0.85*fin);
+      P.kneeR=lerp3(P.kneeR, add(P.kneeL,V(-0.075,-0.03,0.03)), 0.80*fin);
+    }
+    P.ball=ball;
+    return P;
+  }
+
+  // ---------- shaded rendering ----------
+  // colour-coded by side: LEAD (green) vs TRAIL (blue), neutral CORE torso, pale internal JOINTs
+  const CORE=[168,192,186], LEAD=[86,202,138], TRAIL=[96,178,236], SKIN=[150,235,195], CLUB=[205,210,216], JCOL=[234,245,240], HAND=[224,206,172];
+  const LS={x:-0.55,y:-0.83};
+  const rgb=a=>`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`;
+  function tint(col,depth,mul){const t=Math.max(0,Math.min(1,(cam.dist+0.7-depth)/1.7)),k=(0.55+0.45*t)*mul;return col.map(c=>Math.min(255,c*k));}
+  // a shaded sphere (head + the internal ball joints)
+  function ball3d(x,y,r,col,depth){
+    const base=tint(col,depth,1),hi=base.map(c=>Math.min(255,c*1.5)),lo=base.map(c=>c*0.5);
+    const g=ctx.createRadialGradient(x+LS.x*r*.45,y+LS.y*r*.45,r*.12,x,y,r);
+    g.addColorStop(0,rgb(hi));g.addColorStop(.55,rgb(base));g.addColorStop(1,rgb(lo));
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}
+  // an 8-sided lofted tube (same faceted-but-smooth per-face lighting as the torso), radii ra->rb.
+  // joints/torso/head/hands/feet cover the segment ends, so octagon caps never leave a visible seam.
+  function limb(a,b,ra,rb,col){
+    const dir=norm(sub(b,a));
+    let u=cross(dir,V(0,1,0)); if(len(u)<0.08)u=cross(dir,V(1,0,0)); u=norm(u);
+    const w=norm(cross(dir,u)), N=8, TAU=Math.PI*2, axc=mid(a,b), RA=[],RB=[];
+    for(let k=0;k<N;k++){const t=k*TAU/N,c=Math.cos(t),s=Math.sin(t);
+      RA.push(add(a,add(scl(u,ra*c),scl(w,ra*s)))); RB.push(add(b,add(scl(u,rb*c),scl(w,rb*s))));}
+    const faces=[];
+    for(let k=0;k<N;k++){const j=(k+1)%N,vv=[RA[k],RA[j],RB[j],RB[k]];
+      faces.push({v:vv,c:scl(add(add(add(vv[0],vv[1]),vv[2]),vv[3]),0.25),ax:axc});}
+    faces.push({v:RA.slice().reverse(),c:a,ax:add(a,scl(dir,-0.02))});
+    faces.push({v:RB,c:b,ax:add(b,scl(dir,0.02))});
+    faces.forEach(fc=>fc.d=project(fc.c).z);
+    faces.sort((x,y)=>y.d-x.d);
+    faces.forEach(fc=>{const ps=fc.v.map(project);
+      let nrm=norm(cross(sub(fc.v[1],fc.v[0]),sub(fc.v[fc.v.length-1],fc.v[0])));
+      if(dot(nrm,sub(fc.c,fc.ax))<0)nrm=scl(nrm,-1);
+      const c=tint(col,fc.d,0.5+0.5*Math.max(0,dot(nrm,L3)));
+      ctx.fillStyle=rgb(c);ctx.strokeStyle=rgb(c.map(x=>x*0.82));ctx.lineWidth=0.5;ctx.lineJoin="round";
+      ctx.beginPath();ps.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();});}
+  // a low wedge foot: rectangular sole on the ground, instep sloping from a tall heel down to a low toe
+  function foot(A,toe,col){
+    const G=0.012;                                                  // ground height
+    let dir=sub(toe,A);dir=V(dir.x,0,dir.z);dir=norm(dir);          // horizontal heel->toe direction
+    const side=scl(norm(cross(dir,V(0,1,0))),0.042), back=scl(dir,-0.045);
+    // the heel HEIGHT tracks the ankle: when the trail heel lifts, the foot pivots up onto the grounded toe
+    const heelBot=Math.max(G,A.y-0.092), heelTop=Math.max(heelBot+0.025,A.y-0.015);
+    const toeBot=G, toeTop=G+0.03;
+    const hp=(h,s)=>add(add(V(A.x,h,A.z),back),s), tp=(h,s)=>add(V(toe.x,h,toe.z),s);
+    const sL=side,sR=scl(side,-1),sLt=scl(side,.78),sRt=scl(side,-.78);
+    const bHL=hp(heelBot,sL),bHR=hp(heelBot,sR), tHL=hp(heelTop,sL),tHR=hp(heelTop,sR);
+    const bTL=tp(toeBot,sLt),bTR=tp(toeBot,sRt), tTL=tp(toeTop,sLt),tTR=tp(toeTop,sRt);
+    const faces=[{v:[tHL,tHR,tTR,tTL],l:1.12},{v:[bHL,bTL,tTL,tHL],l:.78},{v:[bHR,bTR,tTR,tHR],l:.78},
+      {v:[bHL,bHR,tHR,tHL],l:.55},{v:[bTL,bTR,tTR,tTL],l:.95},{v:[bHL,bHR,bTR,bTL],l:.5}];  // last = sole (seen when foot tilts up)
+    faces.forEach(f=>{const ps=f.v.map(project);f.d=(ps[0].z+ps[1].z+ps[2].z+ps[3].z)/4;f.ps=ps;});
+    faces.sort((a,b)=>b.d-a.d);
+    faces.forEach(f=>{const c=tint(col,f.d,f.l);ctx.fillStyle=rgb(c);ctx.strokeStyle=rgb(c.map(x=>x*0.8));ctx.lineWidth=0.6;ctx.lineJoin="round";
+      ctx.beginPath();f.ps.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();});}
+  // both hands as one small box gripping the butt of the club, oriented along the shaft
+  function hands(grip,head,col){
+    let ax=sub(head,grip);if(len(ax)<1e-5)ax=V(0,-1,0);ax=norm(ax);
+    let a2=cross(ax,V(0,1,0));if(len(a2)<0.08)a2=cross(ax,V(0,0,1));a2=norm(a2);
+    const a3=norm(cross(ax,a2));
+    const C=add(grip,scl(ax,0.045)), L=0.062,W=0.044,D=0.04;       // sit just down-shaft from the arm junction
+    const cor=(i,j,k)=>add(add(add(C,scl(ax,i*L)),scl(a2,j*W)),scl(a3,k*D));
+    const p0=cor(-1,-1,-1),p1=cor(-1,-1,1),p2=cor(-1,1,1),p3=cor(-1,1,-1),
+          p4=cor(1,-1,-1),p5=cor(1,-1,1),p6=cor(1,1,1),p7=cor(1,1,-1);
+    const faces=[{v:[p0,p3,p2,p1],l:.72},{v:[p4,p5,p6,p7],l:.82},{v:[p0,p1,p5,p4],l:.6},
+      {v:[p3,p7,p6,p2],l:1.05},{v:[p0,p4,p7,p3],l:.78},{v:[p1,p2,p6,p5],l:.92}];
+    faces.forEach(f=>{const ps=f.v.map(project);f.d=(ps[0].z+ps[1].z+ps[2].z+ps[3].z)/4;f.ps=ps;});
+    faces.sort((a,b)=>b.d-a.d);
+    faces.forEach(f=>{const c=tint(col,f.d,f.l);ctx.fillStyle=rgb(c);ctx.strokeStyle=rgb(c.map(x=>x*0.8));ctx.lineWidth=0.6;ctx.lineJoin="round";
+      ctx.beginPath();f.ps.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();});}
+  // 8-sided lofted trunk: cross-section rings (hips -> waist -> chest -> shoulders) with elliptical sections
+  // (wider than deep) that twist from the hip line up to the shoulder line -> the coil is VISIBLE as it rotates.
+  const L3=norm(V(-0.5,0.85,0.55));       // 3D light (upper-left-front)
+  function torso(P){
+    const base=P.pelvis, topC=P.S, sdir=norm(sub(topC,base));
+    const hipDir=norm(sub(P.hipL,P.hipR)), shoDir=norm(sub(P.shoL,P.shoR));
+    const N=8, TAU=Math.PI*2;
+    const rings=[[0.0,0.135,0.10],[0.42,0.115,0.095],[0.78,0.175,0.125],[1.0,0.185,0.11]]  // [t,halfWidth,halfDepth]
+      .map(r=>{const C=lerp3(base,topC,r[0]); let u=norm(lerp3(hipDir,shoDir,r[0]));
+        let f=norm(cross(sdir,u)); u=norm(cross(f,sdir));           // orthonormal ring frame (perp to spine)
+        const pts=[]; for(let k=0;k<N;k++){const a=k*TAU/N;
+          pts.push(add(add(C,scl(u,r[1]*Math.cos(a))),scl(f,r[2]*Math.sin(a))));}
+        return {C,pts};});
+    const faces=[];
+    for(let r=0;r<rings.length-1;r++){const A=rings[r].pts,B=rings[r+1].pts,ax=mid(rings[r].C,rings[r+1].C);
+      for(let k=0;k<N;k++){const j=(k+1)%N;const v=[A[k],A[j],B[j],B[k]];
+        faces.push({v,c:scl(add(add(add(v[0],v[1]),v[2]),v[3]),0.25),ax});}}
+    faces.push({v:rings[0].pts.slice().reverse(),c:rings[0].C,ax:add(rings[0].C,scl(sdir,-0.06))});        // hip cap
+    faces.push({v:rings[rings.length-1].pts,c:rings[rings.length-1].C,ax:add(rings[rings.length-1].C,scl(sdir,0.06))}); // shoulder cap
+    faces.forEach(fc=>fc.d=project(fc.c).z);
+    faces.sort((a,b)=>b.d-a.d);
+    faces.forEach(fc=>{const ps=fc.v.map(project);
+      let nrm=norm(cross(sub(fc.v[1],fc.v[0]),sub(fc.v[fc.v.length-1],fc.v[0])));
+      if(dot(nrm,sub(fc.c,fc.ax))<0)nrm=scl(nrm,-1);
+      const col=tint(CORE,fc.d,0.5+0.5*Math.max(0,dot(nrm,L3)));
+      ctx.fillStyle=rgb(col);ctx.strokeStyle=rgb(col.map(x=>x*0.82));ctx.lineWidth=0.5;ctx.lineJoin="round";
+      ctx.beginPath();ps.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();ctx.stroke();});
+  }
+  function partsOf(P){return[
+    {torso:true},                                    // lofted 8-sided trunk (replaces the tube + hip/shoulder bars)
+    {a:P.S,b:P.neck,ra:0.05,rb:0.046,col:CORE},
+    {a:P.shoL,b:P.elbL,ra:0.052,rb:0.038,col:LEAD},{a:P.elbL,b:P.grip,ra:0.038,rb:0.031,col:LEAD},
+    {a:P.shoR,b:P.elbR,ra:0.052,rb:0.038,col:TRAIL},{a:P.elbR,b:P.grip,ra:0.038,rb:0.031,col:TRAIL},
+    {a:P.hipL,b:P.kneeL,ra:0.088,rb:0.06,col:LEAD},{a:P.kneeL,b:P.ankL,ra:0.058,rb:0.04,col:LEAD},{foot:"L",col:LEAD},
+    {a:P.hipR,b:P.kneeR,ra:0.088,rb:0.06,col:TRAIL},{a:P.kneeR,b:P.ankR,ra:0.058,rb:0.04,col:TRAIL},{foot:"R",col:TRAIL},
+    {a:P.butt,b:P.clubhead,ra:0.014,rb:0.014,col:CLUB},
+    {hands:true,col:HAND},
+    // colour-matched joint fills (blend into the limb, hide the octagon seam / bent-joint gap = natural joint bulge)
+    {fill:P.shoL,r:0.050,col:LEAD},{fill:P.shoR,r:0.050,col:TRAIL},
+    {fill:P.elbL,r:0.038,col:LEAD},{fill:P.elbR,r:0.038,col:TRAIL},
+    {fill:P.hipL,r:0.062,col:LEAD},{fill:P.hipR,r:0.062,col:TRAIL},
+    {fill:P.kneeL,r:0.056,col:LEAD},{fill:P.kneeR,r:0.056,col:TRAIL},
+    {fill:P.ankL,r:0.042,col:LEAD},{fill:P.ankR,r:0.042,col:TRAIL},
+    {head:true},
+  ];}
+  // small WHITE reference dots at the pivots (drawn on top of the colour-matched fills)
+  const JLIST=[["shoL",0.020],["shoR",0.020],["elbL",0.016],["elbR",0.016],
+    ["hipL",0.024],["hipR",0.024],["kneeL",0.022],["kneeR",0.022],["ankL",0.018],["ankR",0.018]];
+  function drawBody(P){
+    const ps=partsOf(P);
+    ps.forEach(p=>p.d=p.head?project(P.head).z:p.torso?project(mid(P.pelvis,P.S)).z:p.hands?project(P.grip).z:p.fill?project(p.fill).z:p.foot?project(p.foot==="L"?P.ankL:P.ankR).z:(project(p.a).z+project(p.b).z)/2);
+    ps.sort((a,b)=>b.d-a.d);
+    ps.forEach(p=>{
+      if(p.head){const h=project(P.head);ball3d(h.x,h.y,0.108*h.s,SKIN,h.z);}
+      else if(p.torso){torso(P);}
+      else if(p.fill){const q=project(p.fill);ball3d(q.x,q.y,p.r*q.s,p.col,q.z);}
+      else if(p.hands){hands(P.grip,P.clubhead,p.col);}
+      else if(p.foot){foot(p.foot==="L"?P.ankL:P.ankR, p.foot==="L"?P.footL:P.footR, p.col);}
+      else limb(p.a,p.b,p.ra,p.rb,p.col);});
+    // internal ball joints over the tubes (depth-sorted among themselves) -> always-visible pivots
+    JLIST.map(j=>({q:project(P[j[0]]),r:j[1]})).sort((a,b)=>b.q.z-a.q.z)
+      .forEach(j=>ball3d(j.q.x,j.q.y,j.r*j.q.s,JCOL,j.q.z));
+  }
+  function shadow(P){const gc=project(V(P.pelvis.x,0.0,0.10));
+    ctx.fillStyle="rgba(0,0,0,.28)";ctx.beginPath();ctx.ellipse(gc.x,gc.y,0.42*gc.s,0.13*gc.s,0,0,7);ctx.fill();}
+  function ground(){
+    ctx.strokeStyle="rgba(127,227,180,.08)";ctx.lineWidth=1;
+    for(let i=-2;i<=2;i++){const a=project(V(i*0.5,0,-1)),b=project(V(i*0.5,0,1.3));ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    for(let j=-2;j<=3;j++){const a=project(V(-1.3,0,j*0.5)),b=project(V(1.3,0,j*0.5));ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    // target line (runs along world +x), drawn through the ball
+    const a=project(V(-1.3,0.001,0.50)),b=project(V(1.3,0.001,0.50));
+    ctx.strokeStyle="rgba(255,255,255,.16)";ctx.setLineDash([5,6]);ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="rgba(255,255,255,.32)";ctx.font="10px sans-serif";ctx.textAlign="left";ctx.fillText("target ►",b.x-2,b.y-5);}
+  function callout(world,text,col,dy){const p=project(world);
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,2.2,0,7);ctx.fill();
+    ctx.font="600 10px sans-serif";ctx.textAlign="left";
+    const tx=p.x+8,ty=p.y+(dy||0);const wd=ctx.measureText(text).width;
+    ctx.fillStyle="rgba(8,20,16,.72)";ctx.fillRect(tx-3,ty-9,wd+6,13);
+    ctx.fillStyle=col;ctx.fillText(text,tx,ty+1);}
+
+  let ctx=null;
+  let last=null;
+  let trace={key:"",pts:null};   // cached clubhead-path samples (3D) — depend on style/setup only, not phase/camera
+  function render(style,s,deliv,phase){
+    last={style,s,deliv,phase};
+    const w=fit(swingC,VIEW_H); W=w; H=VIEW_H; cam.f=H*0.76; ctx=swingX;
+    const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,"#0c1c2c");bg.addColorStop(1,"#10283a");ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ground();
+    // CLUBHEAD PATH TRACE — the full swing's clubhead trajectory, drawn under the body:
+    // faint gray back, bright green down through the hitting zone, soft green follow-through.
+    // From DTL it collapses into the swing-plane line; from overhead it shows the in-to-out path.
+    // Sampled DENSELY (the clubhead covers a huge arc per unit t near impact — coarse uniform steps
+    // showed corners exactly there) and CACHED in 3D: replays/camera drags only re-project.
+    if(s){
+      const key=style+"|"+club+"|"+JSON.stringify(s);
+      if(trace.key!==key){trace.key=key;const raw=[];
+        for(let t=0.12;t<=1.0005;t+=0.003)raw.push({t,p:poseAt(style,s,deliv,t).clubhead});
+        // the swing schedules are piecewise-LINEAR, so the clubhead velocity kinks at each keyframe (angular
+        // points in the trace, esp. the top->downswing transition). Smooth those out: a light [.25,.5,.25]
+        // pass ×3 rounds the corners without moving the overall arc (purely visual — swing/physics untouched).
+        for(let pass=0;pass<3;pass++){const o=raw.map(n=>n.p);
+          for(let i=1;i<raw.length-1;i++)raw[i].p={x:o[i-1].x*0.25+o[i].x*0.5+o[i+1].x*0.25,
+            y:o[i-1].y*0.25+o[i].y*0.5+o[i+1].y*0.25, z:o[i-1].z*0.25+o[i].z*0.5+o[i+1].z*0.25};}
+        trace.pts=raw;}
+      const zones=[["rgba(170,190,178,.20)",0,0.45],["rgba(57,217,138,.55)",0.45,0.63],["rgba(57,217,138,.28)",0.63,1.01]];
+      zones.forEach(z=>{ctx.strokeStyle=z[0];ctx.lineWidth=1.6;ctx.lineJoin="round";ctx.lineCap="round";
+        ctx.beginPath();let started=false;
+        trace.pts.forEach(n=>{if(n.t<z[1]-0.003||n.t>z[2]+0.003)return;
+          const q=project(n.p); started?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y); started=true;});
+        ctx.stroke();});
+    }
+    const P=poseAt(style,s,deliv,phase); window.__P=P;   // debug: expose current pose for verification tooling
+    shadow(P);
+    drawBody(P);
+    const bp=project(P.ball);ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(bp.x,bp.y,Math.max(2,0.021*bp.s),0,7);ctx.fill();
+    // anchored setup callouts (only at address — "where to set up")
+    if(phase<0.2 && s){const al=s.align||0;
+      callout(mid(P.footL,P.footR), al===0?"square stance":(al<0?`open ${-al}°`:`closed ${al}°`), "#7fe3b4", 14);
+      callout(P.pelvis, (s.weight||50)+"% lead weight", "#f0b429", -2);}
+    // checkpoint + style labels
+    const nm=phase<0.16?"Address":phase<0.42?"Backswing":phase<0.53?"Top":phase<0.58?"Transition":phase<0.64?"Impact":"Follow-through";
+    ctx.textAlign="left";ctx.font="600 12px sans-serif";ctx.fillStyle="#e7f0ea";ctx.fillText(nm,12,20);
+    ctx.textAlign="right";ctx.font="600 11px sans-serif";ctx.fillStyle=style==="ven"?"#f0b429":"#7fe3b4";
+    ctx.fillText(style==="ven"?"VENETOS · anchored, arms-only":"TRADITIONAL · full coil & shift",W-12,20);
+    if(deliv){const lean=CLUBS[club].loft0-deliv.loft;
+      ctx.textAlign="left";ctx.font="11px sans-serif";ctx.fillStyle="#7d9488";
+      ctx.fillText((lean>=0?"shaft lean fwd ":"added loft ")+Math.abs(lean).toFixed(1)+"°",12,H-40);
+      ctx.fillText((deliv.attack>=0?"hitting up ":"hitting down ")+Math.abs(deliv.attack).toFixed(1)+"°",12,H-24);
+      ctx.fillText("drag to rotate · "+(s?s.weight:50)+"% lead weight",12,H-8);}
+  }
+  function redraw(){if(last)render(last.style,last.s,last.deliv,last.phase);}
+  const VIEWS={face:[0,0.05],dtl:[-1.15,0.12],top:[0.32,0.92],behind:[Math.PI,0.10]};
+  function setView(name){const v=VIEWS[name]||VIEWS.face;cam.az=v[0];cam.el=v[1];redraw();}
+  function attachDrag(c){
+    let drag=null;
+    c.style.cursor="grab";
+    const down=e=>{const t=e.touches?e.touches[0]:e;drag={x:t.clientX,y:t.clientY,az:cam.az,el:cam.el};c.style.cursor="grabbing";};
+    const move=e=>{if(!drag)return;const t=e.touches?e.touches[0]:e;
+      cam.az=drag.az-(t.clientX-drag.x)*0.01;cam.el=Math.max(-0.35,Math.min(1.35,drag.el+(t.clientY-drag.y)*0.008));redraw();if(e.touches)e.preventDefault();};
+    const up=()=>{drag=null;c.style.cursor="grab";};
+    c.addEventListener("mousedown",down);addEventListener("mousemove",move);addEventListener("mouseup",up);
+    c.addEventListener("touchstart",down,{passive:true});c.addEventListener("touchmove",move,{passive:false});c.addEventListener("touchend",up);}
+  return {render,redraw,setView,attachDrag,cam};
+})();
+
+const VIEW_H=340;
+// drawSwing is the app-facing entry: render the current style at `phase`
+function drawSwing(d,s,phase){
+  Body3D.render(style, s, d, phase);
+}
+
+// ============================================================
+//  SETUP TOP-DOWN  (alignment · hips · weight · ball position)
+// ============================================================
+// overhead address view for a RH golfer: target is to the LEFT, golfer below the line.
+// shoulders, hips and feet are all parallel at the stance-alignment angle.
+function drawSetupTop(s,d,startDir){
+  const w=fit(setupC,320),h=320,D2R=Math.PI/180;
+  setupX.fillStyle="#0e1a14";setupX.fillRect(0,0,w,h);
+  const TY=h*0.30, BX=w*0.62, LX=w*0.07;           // target-line y, ball x, target(left) x
+  const dir=deg=>{const a=deg*D2R;return [-Math.cos(a),-Math.sin(a)];};  // θ° right of target (right=up)
+
+  // ---- target line, right -> left ----
+  setupX.strokeStyle="rgba(255,255,255,.45)";setupX.lineWidth=1;setupX.setLineDash([5,6]);
+  setupX.beginPath();setupX.moveTo(BX,TY);setupX.lineTo(LX,TY);setupX.stroke();setupX.setLineDash([]);
+  setupX.fillStyle="rgba(255,255,255,.6)";
+  setupX.beginPath();setupX.moveTo(LX-7,TY);setupX.lineTo(LX+5,TY-4);setupX.lineTo(LX+5,TY+4);setupX.closePath();setupX.fill();
+  setupX.font="10px sans-serif";setupX.textAlign="left";setupX.fillText("target",LX+9,TY-6);
+
+  // ---- AIM line: where the whole setup points, vs the (dashed white) target line ----
+  const aim=s.aim||0;
+  if(Math.abs(aim)>0.2){const ad=dir(aim);
+    setupX.strokeStyle="rgba(240,180,41,.55)";setupX.lineWidth=1.5;setupX.setLineDash([4,4]);
+    setupX.beginPath();setupX.moveTo(BX,TY);setupX.lineTo(BX+ad[0]*(BX-LX)*0.92,TY+ad[1]*(BX-LX)*0.92);setupX.stroke();setupX.setLineDash([]);
+    setupX.fillStyle="rgba(240,180,41,.9)";setupX.textAlign="left";
+    setupX.fillText("aim "+Math.abs(aim)+"° "+(aim>0?"R":"L"),BX+ad[0]*96+4,TY+ad[1]*96+3);}
+
+  // ---- shoulders / hips / feet : aimed off the target line by (aim + open/closed alignment) ----
+  const da=dir(s.align+aim), perp=[da[1],-da[0]];  // feet/hips aim dir, and perpendicular toward viewer (down)
+  const daS=dir((s.shoAim!=null?s.shoAim:s.align)+aim);  // shoulders aim dir (own angle)
+  const BA=[BX+perp[0]*48, TY+perp[1]*48], L=60;
+  const lineAt=(cx,cy,col,wd,dd)=>{dd=dd||da;const a=[cx+dd[0]*L,cy+dd[1]*L],b=[cx-dd[0]*L,cy-dd[1]*L];
+    setupX.strokeStyle=col;setupX.lineWidth=wd;setupX.beginPath();setupX.moveTo(a[0],a[1]);setupX.lineTo(b[0],b[1]);setupX.stroke();return [a,b];};
+  const shC=[BA[0]-perp[0]*20,BA[1]-perp[1]*20], hpC=[BA[0],BA[1]], ftC=[BA[0]+perp[0]*22,BA[1]+perp[1]*22];
+  lineAt(shC[0],shC[1],"rgba(127,227,180,.9)",3,daS);        // shoulders (own aim)
+  lineAt(hpC[0],hpC[1],"rgba(127,227,180,.55)",2);           // hips
+  const feet=lineAt(ftC[0],ftC[1],"rgba(127,227,180,.75)",2);// feet
+  const drawFoot=(p,share,lbl)=>{const rr=6+share*11;
+    setupX.fillStyle=`rgba(57,217,138,${0.3+share*0.6})`;
+    setupX.beginPath();setupX.ellipse(p[0],p[1],rr,rr*0.7,Math.atan2(da[1],da[0]),0,7);setupX.fill();
+    setupX.fillStyle="#cfe";setupX.font="9px sans-serif";setupX.textAlign="center";setupX.fillText(lbl,p[0],p[1]+rr+10);};
+  drawFoot(feet[0],s.weight/100,"lead "+s.weight+"%");        // lead = target-side end
+  drawFoot(feet[1],1-s.weight/100,"trail "+(100-s.weight)+"%");
+
+  // ---- club PATH through impact: the clubhead swings on an ARC. It's only travelling in-to-out (d.path) AT
+  //      the ball — that's the TANGENT; it comes from inside and curves back inside. Draw the arc (tangent =
+  //      d.path at the ball), arrowhead at the exit. Radius is stylised (a real swing radius reads ~straight here).
+  const pd=dir(d.path);
+  let nrm=[pd[1],-pd[0]]; if(nrm[1]<0)nrm=[-nrm[0],-nrm[1]];        // arc-centre normal, toward the body (down)
+  const AR=112, Cc=[BX+nrm[0]*AR, TY+nrm[1]*AR];                    // swing-arc centre
+  const phi=Math.atan2(TY-Cc[1], BX-Cc[0]);
+  const gsign=((-Math.sin(phi))*pd[0]+Math.cos(phi)*pd[1])>0?1:-1; // +t moves along the travel (exit) direction
+  const arcPt=t=>[Cc[0]+AR*Math.cos(phi+gsign*t), Cc[1]+AR*Math.sin(phi+gsign*t)];
+  const tIn=-0.34, tOut=0.48;                                      // inside (tail) .. exit (arrowhead)
+  setupX.strokeStyle="#f0b429";setupX.lineWidth=2;setupX.beginPath();
+  for(let i=0;i<=24;i++){const p=arcPt(tIn+(tOut-tIn)*i/24);i?setupX.lineTo(p[0],p[1]):setupX.moveTo(p[0],p[1]);}
+  setupX.stroke();
+  const pE=arcPt(tOut),pPrev=arcPt(tOut-0.06),pa=Math.atan2(pE[1]-pPrev[1],pE[0]-pPrev[0]);
+  setupX.fillStyle="#f0b429";setupX.beginPath();setupX.moveTo(pE[0],pE[1]);
+  setupX.lineTo(pE[0]-9*Math.cos(pa-0.42),pE[1]-9*Math.sin(pa-0.42));
+  setupX.lineTo(pE[0]-9*Math.cos(pa+0.42),pE[1]-9*Math.sin(pa+0.42));
+  setupX.closePath();setupX.fill();
+  const pT=arcPt(tIn);
+  setupX.font="10px sans-serif";setupX.textAlign="left";setupX.fillStyle="#f0b429";
+  setupX.fillText("club path "+(Math.abs(d.path)<0.3?"square":(d.path>0?d.path.toFixed(1)+"° in-out":(-d.path).toFixed(1)+"° out-in")),pT[0]+8,pT[1]+14);
+
+  // ---- ball, start line, and the draw curving back to target ----
+  ball(setupX,BX,TY);
+  const SL=(BX-LX)*0.92, se=[BX+dir(startDir)[0]*SL, TY+dir(startDir)[1]*SL];
+  setupX.strokeStyle="#39d98a";setupX.lineWidth=2.5;
+  setupX.beginPath();setupX.moveTo(BX,TY);setupX.lineTo(se[0],se[1]);setupX.stroke();
+  setupX.strokeStyle="rgba(57,217,138,.5)";setupX.lineWidth=2;setupX.setLineDash([4,4]);
+  setupX.beginPath();setupX.moveTo(BX,TY);setupX.quadraticCurveTo(se[0],se[1],LX+12,TY);setupX.stroke();setupX.setLineDash([]);
+
+  // ---- legend ----
+  const R=v=>Math.abs(v)<0.2?"straight":(v>0?v.toFixed(1)+"° R":Math.abs(v).toFixed(1)+"° L");
+  const curve=d.face-d.path, shp=curve<-1.2?"→ draws to target":curve>1.2?"→ fades":"· flies straight";
+  setupX.textAlign="left";setupX.font="11px sans-serif";
+  setupX.fillStyle="#39d98a";setupX.fillText((Math.abs(startDir)<0.4?"ball starts on line":"ball starts "+R(startDir))+" "+shp,12,h-52);
+  const aimTag=v=>v>0.2?"closed":v<-0.2?"open":"square";
+  const _ss2=(s.shoAim!=null?s.shoAim:s.align);
+  setupX.fillStyle="#7fe3b4";setupX.fillText("shoulders "+R(_ss2)+" ("+aimTag(_ss2)+") · feet "+R(s.align)+" ("+aimTag(s.align)+")",12,h-34);
+  setupX.fillStyle="#7d9488";setupX.fillText("hips clear "+s.hipTurn+"° through impact · "+s.weight+"% lead weight",12,h-16);
+}
+
+// ============================================================
+//  ANIMATION
+// ============================================================
+let anim=null;
+// real-time -> swing phase: settle, slow backswing (ease out into top), pause, fast downswing
+const SWING_MS=1270;
+function swingPhase(t){
+  if(t<150)return 0.12*smooth(t/150);                       // settle at address
+  if(t<950)return 0.12+0.33*easeOut((t-150)/800);           // backswing (decelerating)
+  if(t<1070)return 0.45;                                    // pause at the top
+  return 0.45+0.15*easeIn((t-1070)/200);                    // downswing (accelerating)
+}
+function masterReplay(){
+  if(anim)cancelAnimationFrame(anim);
+  const flightMs=Math.max(900,cur.flightTime*600),t0=performance.now();
+  document.querySelectorAll("#chkSeg .segb").forEach(b=>b.classList.remove("active"));
+  (function step(now){
+    const t=now-t0;
+    if(t<SWING_MS){const ph=swingPhase(t);bodyPhase=ph;document.getElementById("phScrub").value=ph;
+      drawSwing(deliv,state,ph);drawSide(cur,0);drawTop(cur,0);anim=requestAnimationFrame(step);}
+    else{const ft=Math.min(1,(t-SWING_MS)/flightMs);
+      bodyPhase=0.60+0.40*easeOut(Math.min(1,(t-SWING_MS)/650));document.getElementById("phScrub").value=bodyPhase;
+      drawSwing(deliv,state,bodyPhase);drawSide(cur,ft);drawTop(cur,ft);
+      if(ft<1)anim=requestAnimationFrame(step);}
+  })(t0);
+}
+function animate(){
+  if(anim)cancelAnimationFrame(anim);
+  const dur=Math.max(900,cur.flightTime*620),t0=performance.now();
+  (function step(now){const p=Math.min(1,(now-t0)/dur);drawSide(cur,p);drawTop(cur,p);if(p<1)anim=requestAnimationFrame(step);})(t0);
+}
+document.getElementById("playSide").onclick=animate;
+document.getElementById("playSwing").onclick=masterReplay;
+
+// ---- 3D avatar controls: camera presets, drag, checkpoints, scrubber ----
+Body3D.attachDrag(swingC);
+document.querySelectorAll("#camSeg .segb").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("#camSeg .segb").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");Body3D.setView(b.dataset.cam);});
+function setCheckpoint(ph,btn){
+  if(anim)cancelAnimationFrame(anim);
+  bodyPhase=ph;document.getElementById("phScrub").value=ph;
+  document.querySelectorAll("#chkSeg .segb").forEach(x=>x.classList.toggle("active",x===btn));
+  if(deliv)drawSwing(deliv,state,ph);}
+document.querySelectorAll("#chkSeg .segb").forEach(b=>b.onclick=()=>setCheckpoint(parseFloat(b.dataset.ph),b));
+document.getElementById("phScrub").addEventListener("input",e=>{
+  if(anim)cancelAnimationFrame(anim);
+  bodyPhase=parseFloat(e.target.value);
+  document.querySelectorAll("#chkSeg .segb").forEach(x=>x.classList.remove("active"));
+  if(deliv)drawSwing(deliv,state,bodyPhase);});
+window.addEventListener("resize",()=>render(false));
+
+// dispersion controls (consistency + fairway width) — not part of the per-club setup
+function buildDisp(){
+  const el=document.getElementById("dispSliders");el.innerHTML="";
+  const add=(key,label,min,max,step,val,fmt,hint,set)=>{
+    const wrap=document.createElement("div");wrap.className="ctrl";
+    wrap.innerHTML=`<div class="top"><label>${label}</label><span class="val" id="dval-${key}">${fmt(val)}</span></div>
+      <input type="range" id="drng-${key}" min="${min}" max="${max}" step="${step}" value="${val}">
+      <div class="hint">${hint}</div>`;
+    el.appendChild(wrap);
+    wrap.querySelector("input").addEventListener("input",e=>{const v=parseFloat(e.target.value);set(v);document.getElementById("dval-"+key).textContent=fmt(v);render(false);});
+  };
+  add("pow","Your driver speed",80,125,1,Math.round(110*power),v=>`${v} mph`,"scales the WHOLE bag to your power — every club's stock speed (and the yardage chart) moves together",
+    v=>{power=v/110; state.speed=CLUBS[club].speed*power; syncVals(); buildChart();});
+  add("cons","Consistency",0,100,1,consistency,v=>v>=85?`Tour ${v}`:v>=60?`Good ${v}`:v>=35?`Avg ${v}`:`Loose ${v}`,"how repeatable your strike is → tighter pattern",v=>consistency=v);
+  add("fw","Fairway width",18,60,2,fairwayW,v=>`${v} yds`,"width used for the fairways-hit %",v=>fairwayW=v);
+}
+
+// ============================================================
+//  APPEARANCE  (color theme + font style; canvases keep their own palette — they depict the range)
+// ============================================================
+const THEMES={
+  Fairway:{bg:"#0b1411",panel:"#121f1a",panel2:"#16271f",line:"#21362b",txt:"#e7f0ea",muted:"#7d9488",
+           accent:"#39d98a",accent2:"#2bb673",warn:"#f0b429",ink:"#06241a"},
+  Midnight:{bg:"#0a1120",panel:"#111b2e",panel2:"#152238",line:"#22334d",txt:"#e8eef8",muted:"#8494ad",
+           accent:"#5aa7ff",accent2:"#3b82d9",warn:"#f0b429",ink:"#04182e"},
+  Dusk:{bg:"#161009",panel:"#211912",panel2:"#292016",line:"#3d2f1e",txt:"#f4ecdd",muted:"#a3937a",
+           accent:"#f0b429",accent2:"#d99a1f",warn:"#ef8354",ink:"#2a1d02"},
+  Paper:{bg:"#f1efe7",panel:"#fbfaf5",panel2:"#f3f1e8",line:"#d9d4c2",txt:"#25341f",muted:"#6f7d6d",
+           accent:"#1f8f5a",accent2:"#16714a",warn:"#b06e00",ink:"#ffffff"},
+};
+const FONTS={
+  Modern:'-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+  Classic:'Georgia,"Iowan Old Style","Times New Roman",serif',
+  Mono:'ui-monospace,"SF Mono",Menlo,Consolas,monospace',
+};
+let look={theme:"Fairway",font:"Modern"};
+function applyLook(){
+  const t=THEMES[look.theme]||THEMES.Fairway, r=document.documentElement.style;
+  [["--bg",t.bg],["--panel",t.panel],["--panel2",t.panel2],["--line",t.line],["--txt",t.txt],
+   ["--muted",t.muted],["--accent",t.accent],["--accent2",t.accent2],["--warn",t.warn],["--ink",t.ink],
+   ["--font",FONTS[look.font]||FONTS.Modern]].forEach(p=>r.setProperty(p[0],p[1]));
+  document.querySelectorAll("#themeBtns .swb").forEach(b=>b.classList.toggle("active",b.dataset.t===look.theme));
+  document.querySelectorAll("#fontBtns .fnb").forEach(b=>b.classList.toggle("active",b.dataset.f===look.font));
+  localStorage.setItem("bf_look",JSON.stringify(look));
+}
+(function buildLook(){
+  try{const sv=JSON.parse(localStorage.getItem("bf_look")||"null");
+    if(sv&&THEMES[sv.theme]&&FONTS[sv.font])look=sv;}catch(e){}
+  const tb=document.getElementById("themeBtns");
+  Object.keys(THEMES).forEach(name=>{const t=THEMES[name],b=document.createElement("button");
+    b.className="swb";b.dataset.t=name;b.title=name+" theme";
+    b.style.background=`linear-gradient(135deg,${t.accent} 50%,${t.bg} 50%)`;
+    b.onclick=()=>{look.theme=name;applyLook();};tb.appendChild(b);});
+  const fb=document.getElementById("fontBtns");
+  Object.keys(FONTS).forEach(name=>{const b=document.createElement("button");
+    b.className="fnb";b.dataset.f=name;b.title=name+" font";b.textContent="Aa";
+    b.style.fontFamily=FONTS[name];
+    b.onclick=()=>{look.font=name;applyLook();};fb.appendChild(b);});
+  applyLook();
+})();
+
+// ---- go ----
+buildSliders();buildDisp();buildChart();
+requestAnimationFrame(()=>render(true));
+window.addEventListener("load",()=>{if(deliv)drawSetupTop(state,deliv);});
+</script>
+</body>
+</html>

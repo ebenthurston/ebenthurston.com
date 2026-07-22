@@ -98,6 +98,7 @@ const schema = {
       name: 'Eben Thurston',
       url: 'https://ebenthurston.com/',
       email: 'mailto:eben.thurston@gmail.com',
+      image: 'https://ebenthurston.com/eben-thurston.jpg',
       jobTitle:
         'Director, Search Marketing (SEO + SEM) | Head of AI Search (GEO/AEO) Strategy',
       worksFor: {
@@ -162,15 +163,27 @@ const schema = {
 <Base title="Eben Thurston — Search Marketing & AI Search (GEO/AEO) Executive" description={description}>
   <script type="application/ld+json" set:html={JSON.stringify(schema)} slot="head" />
 
-  <h1>Eben Thurston</h1>
-  <p class="lede">
+  <div class="hero">
+    <div>
+      <h1>Eben Thurston</h1>
+      <p class="lede">
     Eben Thurston is a New York–based search marketing executive specializing in
     Generative Engine Optimization (GEO) and Answer Engine Optimization (AEO).
     He is Director of Search Marketing (SEO + SEM) and Head of AI Search
     Strategy at TIAA, a $1.4T+ asset management organization, and has led
     enterprise search programs since 2000 at companies including Shutterstock,
     Time Inc., and FULLBEAUTY Brands.
-  </p>
+      </p>
+    </div>
+    <img
+      class="headshot"
+      src="/eben-thurston.jpg"
+      alt="Eben Thurston, Director of Search Marketing and Head of AI Search Strategy at TIAA"
+      width="576"
+      height="576"
+      loading="eager"
+    />
+  </div>
 
   <h2 id="key-facts">Key Facts</h2>
   <ul>
@@ -264,6 +277,16 @@ const schema = {
         <span class="meta">{post.data.description}</span>
       </li>
     ))}
+  </ul>
+
+  <h2 id="projects">Projects</h2>
+  <p>
+    Eben Thurston builds AI-assisted web apps as working experiments in
+    AI-driven ("vibe-coded") software development:
+  </p>
+  <ul>
+    <li><a href="/golf/">BallFlight</a> — a golf setup and ball-flight physics sandbox.</li>
+    <li><a href="/freethrow/">FreeThrow</a> — a basketball shot-mechanics and make-percentage sandbox.</li>
   </ul>
 
   <h2 id="profiles">Profiles</h2>
