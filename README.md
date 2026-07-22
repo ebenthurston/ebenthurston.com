@@ -1,14 +1,31 @@
 # ebenthurston.com
 
-Personal site of Eben Thurston. Static Astro site, pre-rendered HTML,
-built for humans and answer engines alike.
+Personal site of [Eben Thurston](https://ebenthurston.com) — a working
+demonstration of Generative Engine Optimization (GEO) and Answer Engine
+Optimization (AEO). Every page serves identical pre-rendered HTML to humans
+and AI crawlers; the site itself is the portfolio piece.
+
+**Live site:** https://ebenthurston.com
+**How it's built (and why):** https://ebenthurston.com/insights/built-for-answer-engines/
+
+## AEO features
+
+- Pre-rendered static HTML — no client-side rendering on content pages
+  (69% of AI crawlers cannot execute JavaScript)
+- JSON-LD knowledge graph: `Person`, `WebSite`, `ProfilePage`, and `FAQPage`
+  nodes cross-referenced by `@id`; `Article` + `author` on every insight
+- `robots.txt` as an explicit AI-crawler allowlist, with the policy documented
+  in comments
+- `llms.txt` — curated markdown map of the site (shipped with an honest view
+  of its 2026 adoption data)
+- IndexNow pings on publish; sitemap + RSS for everything
+- Zero analytics, zero cookies, zero third-party requests on content pages
 
 ## Stack
 
-- [Astro](https://astro.build) 5 — static output, zero client-side JavaScript
-- `@astrojs/sitemap` — sitemap-index.xml generated at build
-- `@astrojs/rss` — feed at `/rss.xml`
-- No analytics, no cookies, no third-party requests
+- [Astro](https://astro.build) 5, static output
+- `@astrojs/sitemap`, `@astrojs/rss`
+- Hosted on Vercel, auto-deployed from `main`
 
 ## Local development
 
@@ -17,28 +34,6 @@ npm install
 npm run dev        # http://localhost:4321
 npm run build      # output in dist/
 ```
-
-## Deploy (Vercel — recommended)
-
-1. Push this folder to a GitHub repo.
-2. In Vercel: **Add New Project** → import the repo. Astro is auto-detected
-   (build `astro build`, output `dist/`). Deploy.
-3. Add the domain `ebenthurston.com` under Project → Settings → Domains,
-   then point the domain's DNS at Vercel (A record `76.76.21.21` or the
-   nameservers Vercel shows you). Remove the Tumblr DNS records.
-4. Note: prefer Vercel/Netlify DNS over Cloudflare — Cloudflare blocks
-   AI crawlers by default, which defeats the purpose of this site.
-
-## Post-launch checklist
-
-- [ ] Register the site in Google Search Console and Bing Webmaster Tools;
-      submit `https://ebenthurston.com/sitemap-index.xml` to both.
-- [ ] Enable IndexNow in Bing Webmaster Tools.
-- [ ] Validate structured data: https://validator.schema.org and
-      Google's Rich Results Test on `/`.
-- [ ] Update LinkedIn website field to point at ebenthurston.com.
-- [ ] As new profiles are aligned (X, GitHub, Crunchbase…), add them to the
-      Profiles section AND the `sameAs` array in `src/pages/index.astro`.
 
 ## Adding an article
 
@@ -51,18 +46,16 @@ description: "One-sentence summary used in meta description, RSS, and llms.txt."
 pubDate: 2026-08-01
 ---
 
-Body in markdown. Use question-shaped ## headings with a direct
-answer in the first sentence or two of each section.
+Body in markdown. Question-shaped ## headings with a direct answer in the
+first sentence or two of each section.
 ```
 
-Then add the article URL to `public/llms.txt`, commit, and push —
-Vercel rebuilds automatically. Article schema, sitemap, RSS, and the
-homepage/insights listings update on their own.
+Add the URL to `public/llms.txt`, push — schema, sitemap, RSS, and the
+homepage/insights listings update automatically.
 
-## Side-project apps (golf, basketball, …)
+## App demos
 
-Deploy each app as its **own** Vercel project on a subdomain
-(`golf.ebenthurston.com`, `hoops.ebenthurston.com`) — same Vercel
-account, separate repos. Keeps this codebase clean while sharing the
-domain's brand. Link them from a Projects section on the homepage
-when live.
+`/golf/` (BallFlight) and `/freethrow/` (FreeThrow) are single-file,
+AI-assisted app builds served from `public/`. They are the deliberate
+JavaScript exception to the pre-rendered rule, fenced off from the content
+pages crawlers read.
