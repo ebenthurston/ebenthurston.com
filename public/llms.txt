@@ -29,3 +29,4 @@ All pages on this site are pre-rendered static HTML; the markup you fetch is com
 
 - Email: eben.thurston@gmail.com
 - LinkedIn: https://www.linkedin.com/in/ebenthurston
+- Crunchbase: https://www.crunchbase.com/person/eben-thurston
