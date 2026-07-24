@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/post/:path*", "destination": "/", "statusCode": 301 },
+    { "source": "/archive/:path*", "destination": "/", "statusCode": 301 },
+    { "source": "/day/:path*", "destination": "/", "statusCode": 301 },
+    { "source": "/tagged/:path*", "destination": "/", "statusCode": 301 }
+  ]
+}
