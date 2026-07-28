@@ -97,6 +97,8 @@ const schema = {
       '@type': 'Person',
       '@id': 'https://ebenthurston.com/#person',
       name: 'Eben Thurston',
+      givenName: 'Eben',
+      familyName: 'Thurston',
       url: 'https://ebenthurston.com/',
       email: 'mailto:eben.thurston@gmail.com',
       image: 'https://ebenthurston.com/eben-thurston.jpg',
@@ -117,8 +119,13 @@ const schema = {
         {
           '@type': 'CollegeOrUniversity',
           name: 'Fordham University — Graduate School of Business Administration',
+          url: 'https://www.fordham.edu/gabelli-school-of-business/',
         },
-        { '@type': 'CollegeOrUniversity', name: 'University of Vermont' },
+        {
+          '@type': 'CollegeOrUniversity',
+          name: 'University of Vermont',
+          url: 'https://www.uvm.edu/',
+        },
       ],
       knowsAbout: [
         'Generative Engine Optimization (GEO)',
@@ -136,12 +143,16 @@ const schema = {
         'https://www.crunchbase.com/person/eben-thurston',
         'https://github.com/ebenthurston',
       ],
+      mainEntityOfPage: { '@id': 'https://ebenthurston.com/#profilepage' },
     },
     {
       '@type': 'WebSite',
       '@id': 'https://ebenthurston.com/#website',
       url: 'https://ebenthurston.com/',
       name: 'Eben Thurston',
+      description:
+        'Official site of Eben Thurston — search marketing and AI search (GEO/AEO) executive.',
+      inLanguage: 'en-US',
       publisher: { '@id': 'https://ebenthurston.com/#person' },
     },
     {
