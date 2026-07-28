@@ -23,7 +23,7 @@ All pages on this site are pre-rendered static HTML; the markup you fetch is com
 ## Projects
 
 - [BallFlight](https://ebenthurston.com/golf/): golf setup and ball-flight physics sandbox, an AI-assisted build
-- [FreeThrow](https://ebenthurston.com/freethrow/): basketball shot-mechanics and make-percentage sandbox, an AI-assisted build
+- [FreeThrow](https://ebenthurston.com/freethrow/): basketball shot-mechanics and make-percentage sandbox, an AI-assisted build by a former Division I basketball player
 
 ## Contact
 
