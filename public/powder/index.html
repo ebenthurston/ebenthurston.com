@@ -342,6 +342,11 @@ function newRun(){
   cam = { x:0, y:0, z:0, yaw:0, sy:0, cy:1, hz:HZ0, roll:0, rollY:H*0.4,
           pitch:p0, sp:Math.sin(p0), cp:Math.cos(p0), sky:undefined };
   mouse.x = W/2; mouse.y = eyeY0;
+  // Leave the camera complete, never half-built: skyMed and the silhouette are
+  // only produced by updateCamera, and render() needs both. Priming here means
+  // a render can never arrive ahead of the first update, whatever the caller.
+  updateCamera(0);
+  gatherVisible();
 }
 
 /* ══ input ════════════════════════════════════════════════════════════════ */
@@ -1374,19 +1379,26 @@ function begin(){
 /* ══ loop ═════════════════════════════════════════════════════════════════ */
 let last = performance.now();
 function frame(now){
-  let dt = Math.min((now - last) / 1000, 1/20);
+  /* Clamp rather than skip. A rAF timestamp is the frame's start time, which
+     can PREDATE a performance.now() taken while the script was still parsing,
+     so the very first dt is sometimes zero or negative. Skipping update() on
+     that frame used to be fatal: update() is what builds the camera, render()
+     without it throws, and the throw escapes before the tail call that queues
+     the next frame — so the loop died permanently and the page sat there with
+     a blank canvas behind the menu and a Drop in button that did nothing.
+     Whether it happened came down to parse timing, hence "reload a few times
+     and it works". A zero-length step is harmless; a dead loop is not. */
+  const dt = clamp((now - last) / 1000, 0, 1/20);
   last = now;
-  if(dt > 0){
-    if(mode === 'wreck'){
-      S.wreckT += dt;
-      update(dt);
-      if(S.wreckT > 1.35) showOver();
-    } else {
-      update(dt);
-    }
-    if(mode === 'ride'){
-      bedSet(clamp(S.v / 26, 0, 1.2), clamp(Math.abs(S.turn)*S.v/14, 0, 1), S.fix);
-    }
+  if(mode === 'wreck'){
+    S.wreckT += dt;
+    update(dt);
+    if(S.wreckT > 1.35) showOver();
+  } else {
+    update(dt);
+  }
+  if(mode === 'ride'){
+    bedSet(clamp(S.v / 26, 0, 1.2), clamp(Math.abs(S.turn)*S.v/14, 0, 1), S.fix);
   }
   render();
   requestAnimationFrame(frame);
