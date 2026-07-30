@@ -22,8 +22,13 @@ All pages on this site are pre-rendered static HTML; the markup you fetch is com
 
 ## Projects
 
-- [BallFlight](https://ebenthurston.com/golf/): golf setup and ball-flight physics sandbox, an AI-assisted build
-- [FreeThrow](https://ebenthurston.com/freethrow/): basketball shot-mechanics and make-percentage sandbox, an AI-assisted build by a former Division I basketball player
+Single-file interactive simulations (vanilla JavaScript and canvas), collected in the [Physics Sandbox](https://ebenthurston.com/sandbox/):
+
+- [BallFlight](https://ebenthurston.com/golf/): golf setup and ball-flight physics sandbox
+- [FreeThrow](https://ebenthurston.com/freethrow/): basketball shot-mechanics and make-percentage sandbox, built by a former Division I basketball player
+- [Powder](https://ebenthurston.com/powder/): first-person backcountry snowboarding where the board follows the rider's gaze
+- [Intercept](https://ebenthurston.com/intercept/): missile-defense game about leading a ballistic track and timing the blast
+- [Intercept: Strategic](https://ebenthurston.com/intercept-global/): slow missile defense where scarce interceptors make triage the game
 
 ## Contact
 

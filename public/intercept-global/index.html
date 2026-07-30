@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store" />
+<title>Intercept: Strategic — Slow Missile Defense</title>
+<style>
+  :root{
+    --bg:#05080e; --panel:#0c1320; --line:#1e2c42; --txt:#e6eefb; --muted:#7b8ea9;
+    --accent:#38e1ff; --accent2:#1a9dc0; --warn:#f0b429; --good:#39d98a; --bad:#ff5470;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-user-select:none;user-select:none}
+  header{padding:13px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0;font-weight:600}
+  header .tag{color:var(--muted);font-size:12.5px;font-weight:400}
+  .logo{width:29px;height:29px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:15px}
+  header .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .tbtn{padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);
+    color:var(--muted);cursor:pointer;font-size:12px;font-weight:600}
+  .tbtn:hover{color:var(--txt);border-color:var(--accent2)}
+  .tbtn.on{color:var(--accent);border-color:var(--accent2);background:rgba(56,225,255,.09)}
+  a.back{color:var(--muted);text-decoration:none;font-size:12.5px}
+  a.back:hover{color:var(--accent)}
+  .wrap{max-width:1320px;margin:0 auto;padding:14px 16px 34px}
+  .stagebox{position:relative;background:#04070d;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  canvas{display:block;width:100%;aspect-ratio:1240/700;cursor:crosshair}
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(3,6,11,.86);backdrop-filter:blur(3px);text-align:center;padding:24px}
+  .overlay.hide{display:none}
+  .ocard{max-width:640px}
+  .ocard h2{font-size:29px;margin:0 0 10px}
+  .ocard h2 .em{color:var(--accent)}
+  .ocard p{color:var(--muted);font-size:14px;line-height:1.68;margin:0 0 16px}
+  .ocard p b{color:var(--txt);font-weight:600}
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 20px;text-align:left}
+  @media (max-width:620px){.rules{grid-template-columns:1fr}}
+  .rule{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .rule .h{font-size:12.5px;font-weight:600;margin-bottom:3px}
+  .rule .h .i{color:var(--accent)}
+  .rule .d{font-size:11.5px;color:var(--muted);line-height:1.5}
+  .bigbtn{padding:13px 30px;background:var(--accent);border:none;color:#04202b;border-radius:10px;
+    cursor:pointer;font-size:15px;font-weight:700}
+  .bigbtn:hover{filter:brightness(1.08)}
+  .tally{display:grid;grid-template-columns:1fr auto;gap:6px 18px;font-size:13.5px;max-width:360px;margin:0 auto 20px;text-align:left}
+  .tally .l{color:var(--muted)}
+  .tally .v{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+  .tally .tot{border-top:1px solid var(--line);padding-top:7px;margin-top:5px}
+  .foot{color:var(--muted);font-size:11.5px;line-height:1.6;margin-top:13px;text-align:center}
+  .foot b{color:var(--txt)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">◎</div>
+  <h1>Intercept: Strategic <span class="tag">· slow missile defense · height is time</span></h1>
+  <span class="right">
+    <button class="tbtn on" id="sndBtn">♪ Sound</button>
+    <a class="back" href="../">← Sandbox</a>
+  </span>
+</header>
+
+<div class="wrap">
+  <div class="stagebox">
+    <canvas id="cv"></canvas>
+    <div class="overlay" id="ov"><div class="ocard" id="ovCard"></div></div>
+  </div>
+  <div class="foot">
+    Ground and sky, seen from the side — so <b>how high a track is, is how long you have</b>. Interceptors are slow
+    and scarce. The question is never “can I hit it”, it is <b>which</b> tracks are worth a round, and
+    <b>how long</b> you dare wait to find out where each one is aimed.
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════════════
+   INTERCEPT: STRATEGIC — slow missile defense, side elevation
+   Warheads arc in high and slow at constant ground speed. Interceptors are
+   slow, short-legged and scarce, so the game is allocation and timing.
+   The two constraints are visible rather than abstract:
+     · a minimum intercept altitude  → a line across the sky
+     · interceptor reach             → a dome over each battery
+   Single file, vanilla JS + canvas.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+const CV = document.getElementById('cv'), ctx = CV.getContext('2d');
+const W = 1240, H = 700;
+const GY = 612;                                   // ground line
+const SKY_TOP = 46;                               // below the HUD strip
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  CV.width = Math.round(W*dpr); CV.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+resize(); addEventListener('resize', resize);
+
+const dist = (a,b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
+
+/* ── the ground ───────────────────────────────────────────────────────── */
+const BATTERIES = [
+  { name:'ALPHA', x:140 }, { name:'BRAVO', x:450 },
+  { name:'CROWN', x:790 }, { name:'DELTA', x:1100 }
+];
+const CITIES = [
+  { name:'Ardent',   x:60   }, { name:'Belhaven', x:250  },
+  { name:'Corvale',  x:352  }, { name:'Dunmoor',  x:570  },
+  { name:'Everfell', x:678  }, { name:'Fairholt', x:900  },
+  { name:'Grayport', x:998  }, { name:'Hollis',   x:1190 }
+];
+// plausible non-targets. Spending a round on one of these is the mistake.
+const DECOYS = [
+  { name:'open ground · Larch Flats',   x:20   },
+  { name:'open ground · Vail Basin',    x:192  },
+  { name:'open ground · Kestrel Downs', x:300  },
+  { name:'open ground · Thorn Reach',   x:412  },
+  { name:'open ground · Sallow Fen',    x:508  },
+  { name:'open ground · Ash Cape',      x:640  },
+  { name:'open ground · Brant Moor',    x:740  },
+  { name:'open ground · Cinder Flats',  x:846  },
+  { name:'open ground · Quarry End',    x:1055 },
+  { name:'open ground · Weald Cross',   x:1232 }
+];
+
+/* ── tuning ───────────────────────────────────────────────────────────── */
+// Carried over from the map build; the envelope shape is what matters, and it is
+// re-measured after the port rather than assumed.
+let WH_SPD    = [18, 24];        // warhead ground speed along its arc, px/sec
+let INT_SPD   = 31;              // interceptor speed, px/sec
+let INT_RANGE = 330;             // battery reach, px — the dome overhead
+// The floor is what shuts the firing window, and it is the single most
+// annoying knob to get wrong: at 150 the window closed with ~13s still on the
+// clock and the warhead half a sky up, which reads as broken rather than tense.
+// Low floor = you may keep shooting until the thing is visibly plunging.
+let MIN_ALT   = 65;              // px above ground: below this, no intercept
+let RESOLVE   = 0.45;            // fraction of flight before the target is identified
+let LATE_INTEL= 6;               // ...but never with less than this many seconds left to act
+let PK        = 0.85;            // single-shot probability of kill
+let BLAST_R   = 25;              // px
+
+let sound = true, AC = null;
+function ac(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); return AC; }
+function sfx(kind){
+  if(!sound) return;
+  try{
+    const a = ac(), t = a.currentTime, g = a.createGain(); g.connect(a.destination);
+    if(kind === 'launch'){
+      const o = a.createOscillator(); o.type='sawtooth';
+      o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(660,t+.18);
+      g.gain.setValueAtTime(.04,t); g.gain.exponentialRampToValueAtTime(.001,t+.2);
+      o.connect(g); o.start(t); o.stop(t+.21);
+    }else{
+      const n = Math.floor(a.sampleRate*.5), buf = a.createBuffer(1,n,a.sampleRate), d = buf.getChannelData(0);
+      for(let i=0;i<n;i++) d[i] = (Math.random()*2-1)*(1-i/n);
+      const s = a.createBufferSource(); s.buffer = buf;
+      const f = a.createBiquadFilter(); f.type='lowpass';
+      const big = kind === 'impact';
+      f.frequency.setValueAtTime(big?500:1600,t);
+      f.frequency.exponentialRampToValueAtTime(big?60:180,t+.5);
+      g.gain.setValueAtTime(big?.28:.13,t); g.gain.exponentialRampToValueAtTime(.001,t+.5);
+      s.connect(f); f.connect(g); s.start(t);
+    }
+  }catch(e){}
+}
+
+/* ── flight paths ─────────────────────────────────────────────────────── */
+// A gravity-shaped arc: the track runs shallow and high on the way in, then
+// steepens into the descent. Sampled once with a cumulative-length table so the
+// warhead moves at constant speed along the curve.
+function buildPath(x0,y0,x1,y1){
+  const cx = x0 + (x1-x0)*0.72, cy = y0 + (y1-y0)*0.10;
+  const N = 160, pts = [], cum = [0];
+  for(let i=0;i<=N;i++){
+    const t = i/N, u = 1-t;
+    pts.push([u*u*x0 + 2*u*t*cx + t*t*x1, u*u*y0 + 2*u*t*cy + t*t*y1]);
+    if(i) cum.push(cum[i-1] + dist(pts[i], pts[i-1]));
+  }
+  return { pts, cum, len: cum[N] };
+}
+function atDist(path, s){
+  const c = path.cum, n = c.length-1;
+  s = Math.max(0, Math.min(path.len, s));
+  let lo = 0, hi = n;
+  while(lo < hi-1){ const m = (lo+hi)>>1; if(c[m] <= s) lo = m; else hi = m; }
+  const seg = (c[hi]-c[lo]) || 1, f = (s-c[lo])/seg;
+  return [ path.pts[lo][0] + (path.pts[hi][0]-path.pts[lo][0])*f,
+           path.pts[lo][1] + (path.pts[hi][1]-path.pts[lo][1])*f ];
+}
+
+/* ── state ────────────────────────────────────────────────────────────── */
+let S = null, mode = 'menu', paused = false;
+const mouse = { x:-999, y:-999, on:false };
+
+function newGame(){
+  S = {
+    wave:0, score:0, spent:0, kills:0, leakers:0, timer:0,
+    bats:   BATTERIES.map((b,i) => ({ ...b, p:[b.x, GY], ammo:0, i })),
+    cities: CITIES.map(c => ({ ...c, p:[c.x, GY], alive:true })),
+    tracks: [], ints: [], blasts: [], flashes: [],
+    spawns: [], toSpawn: 0, hover: null, perAmmo: 0
+  };
+}
+
+function startWave(n){
+  S.wave = n; S.timer = 0;
+  const count = Math.min(6 + n*2, 22);
+  const cityShare = Math.min(0.35 + n*0.03, 0.6);
+  // Exactly this many are real threats, then shuffled — rolling each track
+  // independently let a wave come out 75% city-bound or 20%, which is unfair noise
+  // rather than difficulty, and made the magazine impossible to size honestly.
+  const nCity = Math.max(1, Math.round(count*cityShare));
+  const flags = Array.from({length:count}, (_,i) => i < nCity);
+  for(let i=flags.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [flags[i],flags[j]]=[flags[j],flags[i]]; }
+
+  S.spawns = [];
+  let t = 1.0;
+  for(let i=0;i<count;i++){
+    const toCity = flags[i];
+    const pool = toCity ? S.cities.filter(c=>c.alive) : DECOYS;
+    const tgt = pool.length ? pool[(Math.random()*pool.length)|0] : DECOYS[0];
+    const dir = Math.random() < .5 ? -1 : 1;
+    S.spawns.push({
+      t, tgt, isCity: toCity && !!tgt.alive,
+      x0: Math.max(-220, Math.min(W+220, tgt.x + dir*(230 + Math.random()*430))),
+      spd: WH_SPD[0] + Math.random()*(WH_SPD[1]-WH_SPD[0])
+    });
+    t += (6.5 - Math.min(n,8)*0.35) * (0.55 + Math.random()*0.9);
+  }
+  // Scarce on purpose — never enough to shoot everything — but sized to the tracks
+  // that actually matter, with a margin for the misses P(kill) will hand you.
+  const cityCount = S.spawns.filter(s => s.isCity).length;
+  S.perAmmo = Math.max(3, Math.ceil(cityCount * 1.5));
+  S.bats.forEach(b => b.ammo = 0);
+  for(let i=0;i<S.perAmmo;i++) S.bats[i % S.bats.length].ammo++;
+  S.toSpawn = 0;
+  mode = 'play';
+  hideOverlay();
+}
+
+function spawnTrack(sp){
+  S.tracks.push({
+    path: buildPath(sp.x0, -40, sp.tgt.x, GY),
+    s: 0, spd: sp.spd, tgt: sp.tgt, isCity: sp.isCity,
+    resolved: false, engaged: 0
+  });
+}
+// A track aimed at a city that has already been destroyed is no longer a threat —
+// it must stop reading as one, or you waste rounds and attention on a ruin.
+const liveThreat = tr => tr.isCity && tr.tgt.alive;
+const trackPos = tr => atDist(tr.path, tr.s);
+const trackF   = tr => tr.s / tr.path.len;
+const trackEnd = tr => tr.path.pts[tr.path.pts.length-1];
+
+/* ── the core question: where and when can this be met? ───────────────── */
+// Earliest point on the track where an interceptor launched NOW arrives at the
+// same moment as the warhead. Before that point the interceptor is too slow;
+// after it, the interceptor would arrive early and its blast would be wasted.
+// Returns {state:'ok'|'early'|'closed'}: 'early' means the meeting point is still
+// outside every dome — wait. 'closed' means it can never be caught now.
+function rendezvous(tr, bat){
+  if(!bat || bat.ammo <= 0) return { state:'closed' };
+  const steps = 48;
+  const gap = s => (s - tr.s)/tr.spd - dist(bat.p, atDist(tr.path, s))/INT_SPD;
+  let prevD = null, prevS = tr.s;
+  for(let i=0;i<=steps;i++){
+    const s = tr.s + (tr.path.len - tr.s)*i/steps;
+    const d = gap(s);
+    if(prevD !== null && prevD < 0 && d >= 0){
+      let lo = prevS, hi = s;                        // bisect the crossing
+      for(let k=0;k<24;k++){ const m = (lo+hi)/2; if(gap(m) < 0) lo = m; else hi = m; }
+      const p = atDist(tr.path, hi);
+      if(p[1] > GY - MIN_ALT)          return { state:'closed' };  // below the floor
+      if(dist(bat.p, p) > INT_RANGE)   return { state:'early' };   // outside the dome, for now
+      return { state:'ok', s:hi, t:(hi-tr.s)/tr.spd, p, bat };
+    }
+    prevD = d; prevS = s;
+  }
+  return { state:'closed' };
+}
+// seconds until the meeting point sinks below the floor, i.e. how long this
+// track can still be engaged at all
+function windowShutSeconds(tr, rv){
+  if(!rv || rv.state !== 'ok') return 0;
+  let shut = 0;
+  for(let k=1;k<=32;k++){
+    const s = rv.s + (tr.path.len - rv.s)*k/32;
+    if(atDist(tr.path, s)[1] > GY - MIN_ALT) break;
+    shut = (s - rv.s)/tr.spd;
+  }
+  return shut;
+}
+function bestRendezvous(tr){
+  let best = null, early = false;
+  for(const bat of S.bats){
+    const r = rendezvous(tr, bat);
+    if(r.state === 'ok'){ if(!best || r.t < best.t) best = r; }
+    else if(r.state === 'early') early = true;
+  }
+  return best || (early ? { state:'early' } : { state:'closed' });
+}
+
+function launch(tr){
+  if(mode !== 'play' || paused) return false;
+  const r = bestRendezvous(tr);
+  if(r.state !== 'ok') return false;
+  r.bat.ammo--; S.spent++; tr.engaged++;
+  S.ints.push({ a:[r.bat.x, GY-14], b:r.p, len:dist([r.bat.x,GY-14], r.p), d:0, tr });
+  sfx('launch');
+  return true;
+}
+
+/* ── update ───────────────────────────────────────────────────────────── */
+function update(dt){
+  if(mode !== 'play' || paused) return;
+  S.timer += dt;
+  while(S.toSpawn < S.spawns.length && S.timer >= S.spawns[S.toSpawn].t) spawnTrack(S.spawns[S.toSpawn++]);
+
+  for(const tr of S.tracks){
+    tr.s += tr.spd*dt;
+    // Intelligence arrives on schedule — or late but never too late: a track always
+    // resolves while there is still time to act on it. Otherwise a loss is unavoidable,
+    // which reads as unfair rather than tense.
+    if(!tr.resolved){
+      if(trackF(tr) >= RESOLVE) tr.resolved = true;
+      else {
+        const rv = bestRendezvous(tr);
+        if(rv.state === 'ok' && windowShutSeconds(tr, rv) < LATE_INTEL) tr.resolved = true;
+      }
+    }
+    if(tr.s >= tr.path.len){
+      tr.dead = true;
+      const lost = liveThreat(tr);
+      S.flashes.push({ p:trackEnd(tr), t:0, life:1.3, city:lost });
+      if(lost){ tr.tgt.alive = false; S.leakers++; sfx('impact'); }
+      else sfx('boom');
+    }
+  }
+
+  for(const it of S.ints){
+    it.d += INT_SPD*dt;
+    if(it.d >= it.len){
+      it.dead = true;
+      const hit = !it.tr.dead && Math.random() < PK && dist(trackPos(it.tr), it.b) < BLAST_R;
+      S.blasts.push({ p:it.b, t:0, life:.9, hit });
+      if(hit){ it.tr.dead = true; S.kills++; S.score += liveThreat(it.tr) ? 300 : 40; }
+      else it.tr.engaged--;
+      sfx('boom');
+    }
+  }
+
+  for(const b of S.blasts)  { b.t += dt; if(b.t > b.life) b.dead = true; }
+  for(const f of S.flashes) { f.t += dt; if(f.t > f.life) f.dead = true; }
+  S.tracks  = S.tracks.filter(o=>!o.dead);
+  S.ints    = S.ints.filter(o=>!o.dead);
+  S.blasts  = S.blasts.filter(o=>!o.dead);
+  S.flashes = S.flashes.filter(o=>!o.dead);
+
+  if(S.toSpawn >= S.spawns.length && !S.tracks.length && !S.ints.length){
+    if(S.cities.some(c=>c.alive)) endWave(); else gameOver();
+  }
+}
+
+/* ── waves ────────────────────────────────────────────────────────────── */
+function endWave(){
+  mode = 'between';
+  const saved = S.cities.filter(c=>c.alive).length;
+  const held  = S.bats.reduce((a,b)=>a+b.ammo,0);
+  S.score += saved*150*S.wave + held*40*S.wave;
+  showOverlay(`
+    <h2>Wave ${S.wave} <span class="em">held</span></h2>
+    <div class="tally">
+      <div class="l">Cities intact</div><div class="v">${saved} × ${150*S.wave}</div>
+      <div class="l">Rounds held back</div><div class="v">${held} × ${40*S.wave}</div>
+      <div class="l">Warheads killed</div><div class="v">${S.kills}</div>
+      <div class="l">Leakers on cities</div><div class="v">${S.leakers}</div>
+      <div class="l tot">Score</div><div class="v tot">${S.score.toLocaleString()}</div>
+    </div>
+    <button class="bigbtn" id="nextBtn">Wave ${S.wave+1} →</button>
+    <p style="margin-top:15px;font-size:12.5px">Restraint pays: unspent rounds are worth points, and next
+    wave's salvo is bigger than your magazine.</p>
+  `);
+  document.getElementById('nextBtn').onclick = () => startWave(S.wave+1);
+}
+function gameOver(){
+  mode = 'over';
+  showOverlay(`
+    <h2>Every city <span class="em" style="color:var(--bad)">lost</span></h2>
+    <div class="tally">
+      <div class="l">Waves held</div><div class="v">${S.wave-1}</div>
+      <div class="l">Warheads killed</div><div class="v">${S.kills}</div>
+      <div class="l">Rounds spent</div><div class="v">${S.spent}</div>
+      <div class="l tot">Final score</div><div class="v tot">${S.score.toLocaleString()}</div>
+    </div>
+    <button class="bigbtn" id="againBtn">New defense</button>
+  `);
+  document.getElementById('againBtn').onclick = () => { newGame(); startWave(1); };
+}
+
+const ov = document.getElementById('ov'), ovCard = document.getElementById('ovCard');
+function showOverlay(h){ ovCard.innerHTML = h; ov.classList.remove('hide'); }
+function hideOverlay(){ ov.classList.add('hide'); }
+
+function menu(){
+  mode = 'menu';
+  showOverlay(`
+    <h2>Intercept: <span class="em">Strategic</span></h2>
+    <p>Seen from the side: ground below, sky above. Warheads come in high and slow. Your interceptors are slow
+    too — and there are never enough. Click a track to commit a round.</p>
+    <div class="rules">
+      <div class="rule"><div class="h"><span class="i">▁</span> The floor is the deadline</div>
+        <div class="d">Nothing may be intercepted below the marked altitude. A round fired now meets its track at
+        the ringed point; as you wait, that point sinks. When it reaches the floor, the track is gone.</div></div>
+      <div class="rule"><div class="h"><span class="i">◠</span> Domes are your reach</div>
+        <div class="d">Each battery covers the dome drawn above it. A track outside every dome cannot be engaged
+        yet — you wait for it to come down into cover.</div></div>
+      <div class="rule"><div class="h"><span class="i">?</span> You don't know the target yet</div>
+        <div class="d">A track's aim point is unknown until it is ~45% of the way in. Fire early and you may waste
+        a round on empty ground. Wait, and the window may shut.</div></div>
+      <div class="rule"><div class="h"><span class="i">◈</span> Rounds are scarce</div>
+        <div class="d">Fewer rounds than warheads, every wave. Letting the harmless ones through is not failure,
+        it is the whole job. Unspent rounds score, and hits are only ${Math.round(PK*100)}% certain.</div></div>
+    </div>
+    <button class="bigbtn" id="startBtn">Begin watch</button>
+  `);
+  document.getElementById('startBtn').onclick = () => { newGame(); startWave(1); };
+}
+
+/* ── drawing ──────────────────────────────────────────────────────────── */
+const STARS = Array.from({length:80}, () => ({ x:Math.random()*W, y:SKY_TOP+Math.random()*(GY-SKY_TOP-160),
+  r:Math.random()*1.1+.3, a:Math.random()*.45+.12 }));
+const HILLS = (() => {
+  const pts = [];
+  // kept low so the minimum-intercept line clearly floats above the skyline
+  for(let x=-20;x<=W+20;x+=16)
+    pts.push([x, GY - 16 - Math.sin(x*0.0055)*9 - Math.sin(x*0.014+1.3)*5 - Math.sin(x*0.031+2.4)*3]);
+  return pts;
+})();
+
+function drawSky(){
+  const g = ctx.createLinearGradient(0,SKY_TOP,0,GY);
+  g.addColorStop(0,'#05080f'); g.addColorStop(.65,'#0a1120'); g.addColorStop(1,'#132340');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,GY);
+  for(const s of STARS){ ctx.globalAlpha = s.a; ctx.fillStyle='#cfe6ff';
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.28); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  // altitude ticks — the vertical axis is time, so label it
+  ctx.strokeStyle = 'rgba(56,225,255,.045)'; ctx.lineWidth = 1;
+  for(let y=SKY_TOP+60; y<GY-MIN_ALT; y+=90){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+}
+function drawDomes(){
+  for(const b of S.bats){
+    if(!b.ammo) continue;
+    const g = ctx.createRadialGradient(b.x,GY,INT_RANGE*.55, b.x,GY,INT_RANGE);
+    g.addColorStop(0,'rgba(56,225,255,.028)'); g.addColorStop(1,'rgba(56,225,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(b.x, GY, INT_RANGE, Math.PI, 0); ctx.fill();
+    ctx.strokeStyle = 'rgba(56,225,255,.16)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(b.x, GY, INT_RANGE, Math.PI, 0); ctx.stroke();
+  }
+}
+function drawFloor(){
+  const y = GY - MIN_ALT;
+  ctx.save();
+  ctx.setLineDash([7,6]);
+  ctx.strokeStyle = 'rgba(255,84,112,.45)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  ctx.restore();
+  const g = ctx.createLinearGradient(0,y,0,GY);
+  g.addColorStop(0,'rgba(255,84,112,.055)'); g.addColorStop(1,'rgba(255,84,112,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,y,W,GY-y);
+  ctx.font = '9.5px ui-monospace,SFMono-Regular,Menlo,monospace';
+  ctx.fillStyle = 'rgba(255,84,112,.5)';
+  ctx.fillText('MINIMUM INTERCEPT ALTITUDE', 10, y-6);
+}
+function drawGround(){
+  ctx.fillStyle = '#0a1524';
+  ctx.beginPath();
+  ctx.moveTo(HILLS[0][0], HILLS[0][1]);
+  for(const p of HILLS) ctx.lineTo(p[0],p[1]);
+  ctx.lineTo(W+20,GY+2); ctx.lineTo(-20,GY+2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0c1526'; ctx.fillRect(0,GY,W,H-GY);
+  ctx.strokeStyle = 'rgba(56,225,255,.3)'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(0,GY+.5); ctx.lineTo(W,GY+.5); ctx.stroke();
+}
+function drawCities(){
+  ctx.font = '9.5px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+  ctx.textAlign = 'center';
+  for(const c of S.cities){
+    const n = 5, bw = 8;
+    for(let i=0;i<n;i++){
+      const h = c.alive ? (11 + ((c.x*7*(i+2))%16)) : (4 + ((c.x*3*(i+1))%5));
+      const x = c.x - (n*bw)/2 + i*bw;
+      ctx.fillStyle = c.alive ? '#2b4a72' : '#1a2131';
+      ctx.fillRect(x, GY-h, bw-2, h);
+      if(c.alive){
+        ctx.fillStyle = 'rgba(120,220,255,.5)';
+        for(let wy=GY-h+3; wy<GY-2; wy+=5)
+          for(let wx=x+1; wx<x+bw-3; wx+=3)
+            if(((wx*7+wy*13+c.x)|0) % 3 === 0) ctx.fillRect(wx,wy,1.5,2);
+      }
+    }
+    ctx.fillStyle = c.alive ? 'rgba(120,200,165,.55)' : 'rgba(255,84,112,.4)';
+    ctx.fillText(c.name, c.x, GY+15);
+    if(!c.alive){
+      ctx.strokeStyle = 'rgba(255,84,112,.6)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(c.x-4,GY-14); ctx.lineTo(c.x+4,GY-6);
+      ctx.moveTo(c.x+4,GY-14); ctx.lineTo(c.x-4,GY-6); ctx.stroke();
+    }
+  }
+  ctx.textAlign = 'left';
+}
+function drawBatteries(){
+  for(const b of S.bats){
+    const live = b.ammo > 0;
+    ctx.fillStyle = live ? '#245464' : '#33323a';
+    ctx.beginPath();
+    ctx.moveTo(b.x-17,GY); ctx.lineTo(b.x+17,GY); ctx.lineTo(b.x+9,GY-9); ctx.lineTo(b.x-9,GY-9);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = live ? '#38e1ff' : '#4a4854';
+    ctx.fillRect(b.x-3, GY-20, 6, 12);
+    for(let i=0;i<b.ammo;i++){
+      ctx.fillStyle = '#38e1ff';
+      ctx.beginPath(); ctx.arc(b.x-14+(i%8)*4.2, GY+26+Math.floor(i/8)*5.5, 1.8, 0, 6.28); ctx.fill();
+    }
+  }
+}
+
+function strokePath(path, s0, s1){
+  const n = 30;
+  ctx.beginPath();
+  for(let i=0;i<=n;i++){
+    const p = atDist(path, s0 + (s1-s0)*i/n);
+    if(i === 0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]);
+  }
+  ctx.stroke();
+}
+
+function drawTracks(){
+  for(const tr of S.tracks){
+    const hot = tr === S.hover;
+    const rv = bestRendezvous(tr);
+    const cityBound = tr.resolved && liveThreat(tr);
+    const col = !tr.resolved ? '#8fa3c0' : (cityBound ? '#ff5470' : '#5d6b82');
+
+    ctx.strokeStyle = !tr.resolved ? 'rgba(143,163,192,.5)'
+                    : (cityBound ? 'rgba(255,84,112,.55)' : 'rgba(93,107,130,.4)');
+    ctx.lineWidth = 1.6;
+    strokePath(tr.path, 0, tr.s);
+
+    // path ahead — kept short until the target is known, or the descent gives it away
+    const ahead = tr.resolved ? tr.path.len : Math.min(tr.path.len, tr.s + 46);
+    ctx.setLineDash([3,4]);
+    ctx.strokeStyle = tr.resolved ? (cityBound ? 'rgba(255,84,112,.26)' : 'rgba(93,107,130,.24)')
+                                  : 'rgba(143,163,192,.24)';
+    ctx.lineWidth = 1;
+    strokePath(tr.path, tr.s, ahead);
+    ctx.setLineDash([]);
+
+    // the stretch you can still reach: meeting point → the floor
+    if(rv.state === 'ok' && (hot || cityBound)){
+      let sEnd = rv.s;
+      for(let k=1;k<=24;k++){
+        const s = rv.s + (tr.path.len - rv.s)*k/24;
+        if(atDist(tr.path,s)[1] > GY - MIN_ALT) break;
+        sEnd = s;
+      }
+      ctx.strokeStyle = hot ? 'rgba(57,217,138,.95)' : 'rgba(57,217,138,.4)';
+      ctx.lineWidth = hot ? 3 : 2;
+      strokePath(tr.path, rv.s, sEnd);
+      ctx.strokeStyle = 'rgba(57,217,138,.95)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(rv.p[0], rv.p[1], hot?7:5, 0, 6.28); ctx.stroke();
+    }
+
+    const [wx,wy] = trackPos(tr);
+    ctx.shadowColor = col; ctx.shadowBlur = hot ? 14 : 8;
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(wx,wy, tr.resolved ? 4.2 : 3.6, 0, 6.28); ctx.fill();
+    ctx.shadowBlur = 0;
+    if(tr.engaged > 0){
+      ctx.strokeStyle = 'rgba(56,225,255,.9)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(wx,wy,8,0,6.28); ctx.stroke();
+      if(tr.engaged > 1){ ctx.beginPath(); ctx.arc(wx,wy,10.5,0,6.28); ctx.stroke(); }
+    }
+
+    if(tr.resolved){
+      const [ix] = trackEnd(tr);
+      ctx.strokeStyle = cityBound ? 'rgba(255,84,112,.7)' : 'rgba(93,107,130,.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(ix, GY-30); ctx.lineTo(ix, GY-4); ctx.stroke();
+      ctx.beginPath(); ctx.arc(ix, GY-34, 4, 0, 6.28); ctx.stroke();
+    }
+
+    if(hot || cityBound){
+      const eta = (tr.path.len - tr.s)/tr.spd;
+      const lines = [ tr.resolved ? (cityBound ? '▲ '+tr.tgt.name.toUpperCase()
+                                    : (tr.isCity ? tr.tgt.name+' (ruin)' : tr.tgt.name))
+                                  : '? UNRESOLVED',
+                      'impact ' + eta.toFixed(0) + 's' ];
+      if(rv.state === 'ok')         lines.push('window ' + windowShutSeconds(tr, rv).toFixed(0) + 's');
+      else if(rv.state === 'early') lines.push('OUT OF COVER');
+      else                          lines.push('WINDOW CLOSED');
+      ctx.font = '10px ui-monospace,SFMono-Regular,Menlo,monospace';
+      const wdt = Math.max(...lines.map(l=>ctx.measureText(l).width)) + 12;
+      const lx = Math.min(wx+11, W-wdt-6), ly = Math.max(wy-9, SKY_TOP+2);
+      ctx.fillStyle = 'rgba(6,11,20,.82)';
+      ctx.fillRect(lx, ly, wdt, lines.length*12+5);
+      lines.forEach((l,i) => {
+        ctx.fillStyle = i === 0 ? (tr.resolved ? (cityBound?'#ff5470':'#8fa3c0') : '#f0b429')
+                      : (l === 'WINDOW CLOSED' ? '#ff5470' : '#9fb2cc');
+        ctx.fillText(l, lx+5, ly+11+i*12);
+      });
+    }
+  }
+}
+
+function drawInts(){
+  for(const it of S.ints){
+    const f = Math.min(it.d/Math.max(it.len,1), 1);
+    const x = it.a[0] + (it.b[0]-it.a[0])*f, y = it.a[1] + (it.b[1]-it.a[1])*f;
+    ctx.strokeStyle = 'rgba(56,225,255,.75)'; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(it.a[0],it.a[1]); ctx.lineTo(x,y); ctx.stroke();
+    ctx.shadowColor = '#38e1ff'; ctx.shadowBlur = 9; ctx.fillStyle = '#eafcff';
+    ctx.beginPath(); ctx.arc(x,y,2.8,0,6.28); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(56,225,255,.32)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(it.b[0]-4,it.b[1]); ctx.lineTo(it.b[0]+4,it.b[1]);
+    ctx.moveTo(it.b[0],it.b[1]-4); ctx.lineTo(it.b[0],it.b[1]+4); ctx.stroke();
+  }
+}
+function drawBlasts(){
+  for(const b of S.blasts){
+    const p = b.t/b.life, r = BLAST_R*Math.sin(Math.min(p,1)*Math.PI)**.6;
+    const g = ctx.createRadialGradient(b.p[0],b.p[1],0,b.p[0],b.p[1],Math.max(r,1));
+    g.addColorStop(0,'rgba(255,255,255,.9)');
+    g.addColorStop(.5, b.hit?'rgba(150,240,255,.6)':'rgba(160,170,190,.32)');
+    g.addColorStop(1,'rgba(56,225,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.p[0],b.p[1],r,0,6.28); ctx.fill();
+    if(!b.hit && p < .6){
+      ctx.fillStyle = 'rgba(255,84,112,.9)'; ctx.font = '600 10px ui-monospace,Menlo,monospace';
+      ctx.textAlign='center'; ctx.fillText('MISS', b.p[0], b.p[1]-16); ctx.textAlign='left';
+    }
+  }
+  for(const f of S.flashes){
+    const p = f.t/f.life, r = (f.city?42:18)*Math.sin(Math.min(p,1)*Math.PI)**.5;
+    const g = ctx.createRadialGradient(f.p[0],f.p[1],0,f.p[0],f.p[1],Math.max(r,1));
+    g.addColorStop(0,'rgba(255,240,220,.95)');
+    g.addColorStop(.45, f.city?'rgba(255,120,60,.7)':'rgba(200,200,210,.3)');
+    g.addColorStop(1,'rgba(255,80,40,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.p[0],f.p[1],r,0,6.28); ctx.fill();
+  }
+}
+
+function drawHUD(){
+  const rounds = S.bats.reduce((a,b)=>a+b.ammo,0);
+  const inbound = S.tracks.length + (S.spawns.length - S.toSpawn);
+  const cityBound = S.tracks.filter(t=>t.resolved && liveThreat(t)).length;
+  const unres = S.tracks.filter(t=>!t.resolved).length;
+
+  ctx.font = '600 11px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+  ctx.fillStyle = '#7b8ea9'; ctx.textAlign = 'left';
+  [['WAVE',18],['SCORE',88],['ROUNDS',196],['CITIES',290]].forEach(([l,x]) => ctx.fillText(l,x,18));
+  ctx.font = '700 18px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+  ctx.fillStyle = '#e6eefb';
+  ctx.fillText(String(S.wave), 18, 40);
+  ctx.fillText(S.score.toLocaleString(), 88, 40);
+  ctx.fillStyle = rounds ? (rounds <= 2 ? '#f0b429' : '#38e1ff') : '#ff5470';
+  ctx.fillText(String(rounds), 196, 40);
+  const alive = S.cities.filter(c=>c.alive).length;
+  ctx.fillStyle = alive > 4 ? '#39d98a' : (alive ? '#f0b429' : '#ff5470');
+  ctx.fillText(alive + '/' + S.cities.length, 290, 40);
+
+  ctx.font = '600 11.5px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = cityBound ? '#ff5470' : '#7b8ea9';
+  ctx.fillText(cityBound ? `${cityBound} TRACK${cityBound>1?'S':''} ON CITIES` : 'NO CONFIRMED CITY TRACKS', W-20, 18);
+  ctx.fillStyle = '#f0b429';
+  ctx.fillText(`${unres} unresolved · ${inbound} inbound`, W-20, 38);
+  ctx.textAlign = 'left';
+
+  ctx.font = '10.5px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif';
+  ctx.fillStyle = '#5f7288';
+  ctx.fillText('click a track to commit a round · green = still catchable · the ring is where it would be met · P(kill) '
+    + Math.round(PK*100) + '%', 20, H-12);
+  if(paused){
+    ctx.textAlign='center'; ctx.fillStyle='rgba(230,238,251,.92)';
+    ctx.font='700 26px -apple-system,sans-serif'; ctx.fillText('PAUSED', W/2, H/2); ctx.textAlign='left';
+  }
+}
+
+function draw(){
+  ctx.fillStyle = '#04070d'; ctx.fillRect(0,0,W,H);
+  drawSky();
+  if(!S){ return; }
+  drawDomes(); drawFloor(); drawGround(); drawCities(); drawBatteries();
+  drawTracks(); drawInts(); drawBlasts(); drawHUD();
+}
+
+/* ── input ────────────────────────────────────────────────────────────── */
+function toStage(e){
+  const r = CV.getBoundingClientRect();
+  return { x:(e.clientX-r.left)*(W/r.width), y:(e.clientY-r.top)*(H/r.height) };
+}
+function pickTrack(x,y){
+  if(!S) return null;
+  let best = null, bd = 26;
+  for(const tr of S.tracks){
+    const d = dist(trackPos(tr), [x,y]);
+    if(d < bd){ bd = d; best = tr; }
+  }
+  if(best) return best;
+  bd = 14;                                        // else: anywhere on the catchable stretch
+  for(const tr of S.tracks){
+    const rv = bestRendezvous(tr);
+    if(rv.state !== 'ok') continue;
+    for(let i=0;i<=16;i++){
+      const d = dist(atDist(tr.path, rv.s + (tr.path.len-rv.s)*i/16), [x,y]);
+      if(d < bd){ bd = d; best = tr; }
+    }
+  }
+  return best;
+}
+CV.addEventListener('pointermove', e => {
+  const p = toStage(e); mouse.x=p.x; mouse.y=p.y; mouse.on=true;
+  if(S) S.hover = pickTrack(p.x,p.y);
+});
+CV.addEventListener('pointerleave', () => { mouse.on=false; if(S) S.hover=null; });
+CV.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if(AC && AC.state === 'suspended') AC.resume();
+  const p = toStage(e);
+  const tr = pickTrack(p.x,p.y);
+  if(tr) launch(tr);
+});
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if(k === 'p' || k === ' ' || k === 'escape'){ if(mode === 'play'){ e.preventDefault(); paused = !paused; } }
+});
+const sndBtn = document.getElementById('sndBtn');
+sndBtn.onclick = () => { sound = !sound; sndBtn.classList.toggle('on', sound); };
+document.addEventListener('visibilitychange', () => { if(document.hidden && mode === 'play') paused = true; });
+
+/* ── loop ─────────────────────────────────────────────────────────────── */
+let last = performance.now();
+function frame(now){
+  const dt = Math.min((now-last)/1000, 1/20);
+  last = now;
+  update(dt); draw();
+  requestAnimationFrame(frame);
+}
+newGame(); menu(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>

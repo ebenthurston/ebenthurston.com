@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta name="description" content="Physics Sandbox — single-file interactive simulations built by Eben Thurston: golf ball flight, basketball shot mechanics, missile defense, and backcountry snowboarding." />
+<title>Physics Sandbox — Eben Thurston</title>
+<style>
+  :root{
+    --bg:#0e0d0b; --panel:#16130f; --line:#2a241c; --txt:#ece5da; --muted:#8f8577;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font-family:var(--font);min-height:100vh}
+  .wrap{max-width:860px;margin:0 auto;padding:9vh 24px 40px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.2px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 34px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  a.card{display:block;text-decoration:none;color:var(--txt);background:var(--panel);
+    border:1px solid var(--line);border-radius:16px;padding:26px 24px;transition:.16s;
+    position:relative;overflow:hidden}
+  a.card:hover{transform:translateY(-2px);border-color:var(--ac)}
+  a.card::after{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--ac);opacity:.85}
+  .icon{font-size:34px;line-height:1;margin-bottom:14px}
+  .card h2{font-size:18px;margin:0 0 6px}
+  .card p{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0}
+  .go{display:inline-block;margin-top:16px;font-size:13px;font-weight:600;color:var(--ac)}
+  .golf{--ac:#39d98a}
+  .hoops{--ac:#ff8a3d}
+  .defense{--ac:#38e1ff}
+  .global{--ac:#39d98a}
+  .powder{--ac:#7fd1ff}
+  footer{margin-top:38px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Physics Sandbox</h1>
+  <p class="sub">Tweak the body, watch the physics answer.</p>
+  <div class="grid">
+    <a class="card golf" href="/golf/">
+      <div class="icon">⛳</div>
+      <h2>BallFlight — Golf</h2>
+      <p>Swing &amp; setup sandbox: club, attack angle, face and path → real ball-flight physics, carry and shape.</p>
+      <span class="go">Open →</span>
+    </a>
+    <a class="card hoops" href="/freethrow/">
+      <div class="icon">🏀</div>
+      <h2>FreeThrow — Basketball</h2>
+      <p>Shot-mechanics sandbox: stance, grip, arc and rhythm → simulated make&nbsp;%, dispersion, and a cue card for the real line.</p>
+      <span class="go">Open →</span>
+    </a>
+    <a class="card defense" href="/intercept/">
+      <div class="icon">🛰️</div>
+      <h2>Intercept — Missile Defense</h2>
+      <p>A game: ballistic warheads fall at different speeds, your interceptors fly at a fixed one. Lead the track, time the blast.</p>
+      <span class="go">Play →</span>
+    </a>
+    <a class="card global" href="/intercept-global/">
+      <div class="icon">◎</div>
+      <h2>Intercept: Strategic</h2>
+      <p>The slow version. Scarce interceptors and a firing window that closes while you wait to learn where each warhead is actually aimed.</p>
+      <span class="go">Play →</span>
+    </a>
+    <a class="card powder" href="/powder/">
+      <div class="icon">🏔</div>
+      <h2>Powder — Snowboarding</h2>
+      <p>First-person backcountry trees. Your board goes where your <em>eye</em> goes — and the trees pull on your eye. Ride the gaps.</p>
+      <span class="go">Play →</span>
+    </a>
+  </div>
+  <footer><a href="/" style="color:inherit">← ebenthurston.com</a> · Single-file sims · vanilla JS + canvas · physics first, pixels second</footer>
+</div>
+</body>
+</html>

@@ -20,6 +20,8 @@
   .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));
     display:flex;align-items:center;justify-content:center;font-size:17px}
   .look{margin-left:auto;display:flex;gap:10px;align-items:center}
+  a.back{color:var(--muted);text-decoration:none;font-size:12.5px;white-space:nowrap}
+  a.back:hover{color:var(--accent)}
   .lk{display:flex;gap:5px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:4px 6px}
   .swb{width:19px;height:19px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.15s}
   .swb.active{border-color:var(--txt);transform:scale(1.12)}
@@ -109,6 +111,7 @@
     <span class="lk" id="themeBtns" title="Color theme"></span>
     <span class="lk" id="fontBtns" title="Font style"></span>
   </span>
+  <a class="back" href="../">← Sandbox</a>
 </header>
 
 <div class="wrap">

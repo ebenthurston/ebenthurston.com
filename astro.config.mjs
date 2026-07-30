@@ -10,8 +10,12 @@ export default defineConfig({
   integrations: [
     sitemap({
       customPages: [
+        'https://ebenthurston.com/sandbox/',
         'https://ebenthurston.com/golf/',
         'https://ebenthurston.com/freethrow/',
+        'https://ebenthurston.com/powder/',
+        'https://ebenthurston.com/intercept/',
+        'https://ebenthurston.com/intercept-global/',
       ],
     }),
   ],
