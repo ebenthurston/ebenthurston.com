@@ -30,10 +30,14 @@
   .stagebox{position:relative;background:#05080f;border:1px solid var(--line);border-radius:14px;overflow:hidden}
   canvas{display:block;width:100%;aspect-ratio:1000/620;touch-action:none;cursor:none}
 
-  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:rgba(5,9,16,.84);backdrop-filter:blur(3px);text-align:center;padding:24px}
+  .overlay{position:absolute;inset:0;display:flex;
+    background:rgba(5,9,16,.84);backdrop-filter:blur(3px);text-align:center;padding:24px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch}
   .overlay.hide{display:none}
-  .ocard{max-width:600px}
+  /* Auto margins centre the card AND let it scroll when it is taller than the
+     frame. Flex centring alone cannot: it clips the overflowing top, putting
+     part of the card permanently out of reach. */
+  .ocard{max-width:600px;margin:auto}
   .ocard h2{font-size:31px;margin:0 0 8px;letter-spacing:-.4px}
   .ocard h2 .em{color:var(--accent)}
   .ocard p{color:var(--muted);font-size:14px;line-height:1.65;margin:0 0 18px}
@@ -52,7 +56,9 @@
   .diffs.compact{gap:8px;margin-bottom:0}
   .diffs.compact .diff{min-width:0;padding:7px 15px}
   .diffs.compact .d{display:none}
-  .bigbtn{padding:13px 30px;background:var(--accent);border:none;color:#062232;border-radius:10px;
+  /* 14px padding puts the button at 45px tall — clears the 44px minimum tap
+     target on touch screens wide enough to keep the card inline (iPad). */
+  .bigbtn{padding:14px 30px;background:var(--accent);border:none;color:#062232;border-radius:10px;
     cursor:pointer;font-size:15px;font-weight:700;letter-spacing:.2px}
   .bigbtn:hover{filter:brightness(1.08)}
   .tally{display:grid;grid-template-columns:1fr auto;gap:6px 18px;font-size:13.5px;
@@ -64,6 +70,42 @@
   .foot b{color:var(--txt)}
   a.back{color:var(--muted);text-decoration:none;font-size:12.5px}
   a.back:hover{color:var(--accent)}
+
+  /* The stage is locked to a 1000:620 aspect, so on a phone it is only ~210px
+     tall — a third of what the drop-in card needs, leaving the button clipped
+     below the fold with no way to reach it. When the card cannot fit the stage
+     it breaks out into a full-viewport sheet instead. That is decided by
+     MEASURING the two (see fitOverlay), not by a width breakpoint: a narrow
+     desktop window is wide enough for the card and should keep the card inside
+     the stage where it belongs. */
+  .overlay.sheet{position:fixed;padding:20px 16px}
+
+  /* Type compaction, which genuinely is about narrow screens. */
+  /* Landscape phone: plenty of width, almost no height. Tighten the vertical
+     rhythm so the card fits outright instead of needing a scroll for the sake
+     of a few pixels. Button padding is left alone — it is a touch target. */
+  @media (max-height: 470px){
+    .overlay.sheet{padding:12px 16px}
+    .ocard h2{font-size:21px;margin-bottom:4px}
+    .ocard p{font-size:12px;line-height:1.45;margin-bottom:10px}
+    .keys{margin-bottom:10px;gap:5px}
+    .key{padding:5px 9px;font-size:11px}
+    .diffs{margin-bottom:10px}
+    .diff{padding:7px 8px}
+    .tally{margin-bottom:10px}
+  }
+  @media (max-width: 720px){
+    .ocard h2{font-size:25px;margin-bottom:6px}
+    .ocard p{font-size:13px;line-height:1.55;margin-bottom:14px}
+    .keys{gap:6px;margin-bottom:14px}
+    .key{padding:6px 10px;font-size:11.5px}
+    .diffs{gap:7px;margin-bottom:14px}
+    .diff{min-width:0;flex:1 1 30%;padding:9px 8px}
+    .diff .n{font-size:12.5px}
+    .diff .d{font-size:10.5px;margin-top:2px}
+    .bigbtn{padding:15px 36px;font-size:16px}
+    .tally{font-size:12.5px;max-width:300px;margin-bottom:16px}
+  }
 </style>
 </head>
 <body>
@@ -1330,7 +1372,8 @@ function menuCardHTML(){
        and ${goes} where your gaze goes. Trees <b>pull on your gaze</b> — the longer you
        look at one, the harder it is to look anywhere else. That is how people hit them.</p>
     <div class="keys">
-      <span class="key">Move the mouse to <b>look</b></span>
+      <span class="key">${matchMedia('(pointer: coarse)').matches
+        ? 'Drag to <b>look</b>' : 'Move the mouse to <b>look</b>'}</span>
       <span class="key">Ride the <b>gap</b>, never the trunk</span>
       <span class="key">Eyes <b>up</b> and far to see the line</span>
     </div>
@@ -1352,24 +1395,44 @@ function overCardHTML(){
     <div style="height:18px"></div>
     <button class="bigbtn">Hike back up</button>`;
 }
+/* Does the open card actually fit inside the stage? The stage is aspect-locked,
+   so its height falls out of the page width and on a phone it is far shorter
+   than the card — which used to hide the Drop in button below the fold with no
+   way to reach it. Measure rather than guess at a breakpoint, and let the card
+   break out into a full-viewport sheet only when it genuinely has to. */
+function fitOverlay(){
+  const box = document.querySelector('.stagebox');
+  if(!box) return;
+  ov.classList.remove('sheet');                       // measure unsheeted
+  const r = ovCard.getBoundingClientRect();
+  /* Test the thing that actually matters — is the whole card on screen where
+     it currently sits — rather than a proxy for it. Fitting the stage is not
+     enough: in landscape the stage is wide, so it is also TALL, and runs off
+     the bottom of a short viewport carrying the button with it. */
+  const fitsStage    = ovCard.scrollHeight + 28 <= box.clientHeight;
+  const fitsViewport = r.top >= 0 && r.bottom <= innerHeight;
+  if(!fitsStage || !fitsViewport) ov.classList.add('sheet');
+}
+addEventListener('resize', () => { if(!ov.classList.contains('hide')) fitOverlay(); });
+
 // Re-render whichever card is open, without touching game state — swapping the
 // ride mid-menu must not reroll the mountain out from under you.
 function showCardForMode(){
   if(mode === 'menu')      ovCard.innerHTML = menuCardHTML();
   else if(mode === 'over') ovCard.innerHTML = overCardHTML();
   else return;
-  wireCard();
+  wireCard(); fitOverlay();
 }
 function showMenu(){
   mode = 'menu'; newRun();
   ovCard.innerHTML = menuCardHTML();
-  ov.classList.remove('hide'); wireCard();
+  ov.classList.remove('hide'); wireCard(); fitOverlay();
 }
 function showOver(){
   mode = 'over';
   best = Math.max(best, Math.round(S.score));
   ovCard.innerHTML = overCardHTML();
-  ov.classList.remove('hide'); wireCard();
+  ov.classList.remove('hide'); wireCard(); fitOverlay();
 }
 function begin(){
   newRun(); startBed(); mode = 'ride';
