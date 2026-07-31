@@ -307,6 +307,7 @@ function surfTan(x, z){                             // down-slope fall per metre
 
 let SP = 9.5;       // grid spacing (m) — set by difficulty
 let PDENS = 0.70;   // base chance a cell holds a tree
+let ROCKP = 0.13;      // chance a treeless cell holds a boulder instead
 let SLOPE = 0.54;      // mean pitch of the run (rad)
 let TANS  = Math.tan(SLOPE);
 // How much steeper than the line to the spot you are watching. Gaze parallel
@@ -316,13 +317,39 @@ const EXCESS = 0.20;
 
 // Tree for cell (i,j), or null. Deterministic. `soft` = a buried sapling you
 // can blow through; it costs speed and composure but not the run.
+/* A boulder. Low and wide where a tree is tall and thin, so it reads as a
+   different kind of thing at a glance, and it reuses every field the trees
+   already have (h, cr, tr) so gathering, projection, occlusion and collision
+   all work on it unchanged. */
+function rockAt(i, j, z0){
+  const r2 = rnd(i,j,12), r3 = rnd(i,j,13);
+  const rr = 0.62 + 1.25*r2*r2;                             // half-width, metres
+  return {
+    key: i + ',' + j,
+    x: i*SP + (rnd(i,j,14) - .5) * SP * 0.8,
+    z: z0   + (rnd(i,j,15) - .5) * SP * 0.8,
+    rock: true,
+    h:  rr * (0.55 + 0.5*r3),                               // squat: wider than tall
+    cr: rr,
+    tr: rr * 0.68,                                          // collision half-width
+    tint: rnd(i,j,16)
+  };
+}
+
 function treeAt(i, j){
   const dens = vnoise(i*0.115, j*0.085, 7);
   const z0 = j * SP;
   const ramp = Math.min(Math.max(z0,0) / 6000, 0.22);       // the woods tighten as you drop
   const open = clamp((z0 - 9) / 26, 0, 1);                  // an open apron to drop into
   const p = PDENS * (1 + ramp) * (0.30 + 1.35*dens) * open;
-  if(rnd(i,j,1) >= p) return null;
+  if(rnd(i,j,1) >= p){
+    /* Nothing grew here — so maybe a boulder did. Rocks deliberately occupy
+       the GAPS, which is where you aim, and unlike a trunk they exert no pull
+       on the gaze at all. That makes them the opposite hazard to a tree: trees
+       punish looking at them, rocks punish not reading the gap you picked. */
+    if(rnd(i,j,11) < ROCKP * open) return rockAt(i, j, z0);
+    return null;
+  }
   const r2 = rnd(i,j,2), r3 = rnd(i,j,3), r4 = rnd(i,j,4);
   const soft = r2 < 0.17;
   const h  = soft ? 1.1 + 1.7*r3 : 5.5 + 13.5*Math.pow(r3, 1.35);
@@ -643,7 +670,9 @@ function update(dt){
   let topFix = 0, topTree = null;
   const gain = S.d.fix * (mode === 'ride' ? 1 : 0);
   for(const t of visible){
-    if(t.p.cz > 62 || t.soft) continue;
+    // Rocks are excluded on purpose: the pull is what "don't look at the trees"
+    // means, and a second source of it would blunt the one idea the game has.
+    if(t.p.cz > 62 || t.soft || t.rock) continue;
     const R = t.R;                                             // apparent crown radius
     // The world is drawn rolled, so the trunk has to be rolled into true screen
     // space before it can be compared with the eye — the eye lives in the head.
@@ -722,7 +751,7 @@ function update(dt){
         S.flow = Math.max(0, S.flow - .16);
         puff(side, 26); sfx('slap', side*.5);
         pop('SAPLING', '#9fd8ff');
-      } else { wreck(); return; }
+      } else { wreck(); return; }                            // trunk or boulder
     }else{
       S.calls++;
       const tight = 1 - (d - hit) / (near - hit);            // 0 at the edge, 1 at the paint
@@ -986,6 +1015,41 @@ function drawTree(t){
       ctx.beginPath();
       ctx.ellipse(p.sx + wr*.10*f, p.sy + wry*.16, wr*f, wry*f, 0, 0, 6.2832); ctx.fill();
     }
+  }
+
+  if(t.rock){
+    /* A boulder half-buried in the drift. Faceted rather than smooth so it sits
+       in the same low-poly language as the trees, lit from the same sun, and
+       capped with snow — the cap is what makes it read as sitting IN the snow
+       rather than on top of it. Low and wide, so it never looks like a trunk. */
+    const sunA = clamp(-0.55 - S.yaw, -1.2, 1.2);
+    const litSide = clamp(Math.tan(sunA) * F / 620, -1, 1) >= 0 ? 1 : -1;
+    const grey = t.tint < .5 ? [64,66,73] : [74,72,74];
+    const body = fogMix(grey, fogT);
+    const lit  = fogMix([grey[0]+46, grey[1]+48, grey[2]+52], fogT);
+    const cap  = fogMix([246,251,255], fogT*.6);
+    // silhouette: bottom-left, over the crown, down to bottom-right
+    const sil = [[-1,0],[-.94,.34],[-.66,.72],[-.24,.96],[.22,1],[.66,.74],[.95,.36],[1,0]];
+    const jit = k => 1 + (rnd(t.key.length, k, 17) - .5) * 0.22;   // angular, not domed
+    // A() takes the across-axis offset in PIXELS, so the ±1 silhouette
+    // fractions have to be scaled by the rock's apparent half-width.
+    const pt = ([w,f], k) => A(f*jit(k), w*wpx*jit(k+9));
+    ctx.beginPath();
+    sil.forEach((s,k) => { const q2 = pt(s,k); k ? ctx.lineTo(q2[0],q2[1]) : ctx.moveTo(q2[0],q2[1]); });
+    ctx.closePath(); ctx.fillStyle = body; ctx.fill();
+    if(wpx > 3){                                     // sun-facing face
+      ctx.beginPath();
+      const face = litSide > 0 ? [[.22,1],[.66,.74],[.95,.36],[1,0],[.12,.12]]
+                               : [[-.24,.96],[-.66,.72],[-.94,.34],[-1,0],[-.10,.12]];
+      face.forEach((s,k) => { const q2 = pt(s,k+3); k ? ctx.lineTo(q2[0],q2[1]) : ctx.moveTo(q2[0],q2[1]); });
+      ctx.closePath(); ctx.fillStyle = lit; ctx.fill();
+      // snow sitting on the crown
+      ctx.beginPath();
+      [[-.52,.80],[-.14,.99],[.30,.98],[.62,.78],[.20,.86],[-.20,.88]]
+        .forEach((s,k) => { const q2 = pt(s,k+5); k ? ctx.lineTo(q2[0],q2[1]) : ctx.moveTo(q2[0],q2[1]); });
+      ctx.closePath(); ctx.fillStyle = cap; ctx.globalAlpha = .9; ctx.fill(); ctx.globalAlpha = 1;
+    }
+    return;
   }
 
   if(t.soft){
