@@ -27,6 +27,12 @@ function injectAppMetadata() {
 
           if (html.includes('data-injected-metadata')) continue;
 
+          // The app files are authored as siblings of their own hub page, so
+          // their "back" link points at ../ — correct there, but on this site
+          // the hub lives at /sandbox/. Rewrite it rather than patching the
+          // source, so the app files stay portable.
+          html = html.replaceAll('href="../"', 'href="/sandbox/"');
+
           const url = `${SITE}/${app.slug}/`;
           const title = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || app.name;
 

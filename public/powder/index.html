@@ -116,7 +116,7 @@
     <button class="tbtn on" id="rideBtn" title="Switch between snowboard and skis">🏂 Board</button>
     <button class="tbtn on" id="intentBtn" title="Show where the mouse is, vs. where you're actually looking">✛ Intent marker</button>
     <button class="tbtn on" id="sndBtn" title="Sound">♪ Sound</button>
-    <a class="back" href="/sandbox/">← Sandbox</a>
+    <a class="back" href="../">← Sandbox</a>
   </span>
 </header>
 
@@ -308,6 +308,33 @@ function surfTan(x, z){                             // down-slope fall per metre
 let SP = 9.5;       // grid spacing (m) — set by difficulty
 let PDENS = 0.70;   // base chance a cell holds a tree
 let ROCKP = 0.13;      // chance a treeless cell holds a boulder instead
+let CHUTE = false;     // couloir mode: rock walls instead of a forest
+
+/* The couloir. A centre line that wanders, and a half-width that breathes —
+   opening into bowls, pinching into chokes you have to be lined up for well
+   before you arrive. Both are pure functions of z, so the chute is as
+   deterministic and as infinite as the forest is. */
+function chuteX(z){
+  return 26*Math.sin(z*0.0062) + 11*Math.sin(z*0.0171 + 2.2);
+}
+function chuteHW(z){                                  // half-width, metres
+  const breathe = Math.sin(z*0.0125 + 1.1)*0.5 + Math.sin(z*0.0339)*0.32;
+  return clamp(5.6 + 3.6*breathe, 2.8, 9.4);          // a slot, not a trench
+}
+// Height of the rock face above the snow at this point along the wall. Jagged,
+// so the rim reads as a broken skyline rather than a fence.
+function chuteWallH(z, side){
+  /* Kept deliberately low-frequency. Fine detail here does not survive: the
+     sweep samples geometrically, so far along the wall the step between samples
+     is many metres and any short-wavelength term aliases into torn-paper
+     spikes along the rim. */
+  /* Tall enough to run clean off the top of the frame. In a real couloir you
+     never see the tops of the walls from inside it — they just go up, and that
+     is most of why a slot feels like a slot. */
+  const k = side > 0 ? 3.1 : 7.9;
+  return 34 + 13*Math.sin(z*0.031 + k) + 7*Math.sin(z*0.079 + k*2.3)
+            + 4*Math.sin(z*0.148 + k*3.7);   // ~42m: breaks the smooth sail edge
+}
 let SLOPE = 0.54;      // mean pitch of the run (rad)
 let TANS  = Math.tan(SLOPE);
 // How much steeper than the line to the spot you are watching. Gaze parallel
@@ -336,9 +363,40 @@ function rockAt(i, j, z0){
   };
 }
 
+/* One cell of a couloir. Outside the corridor it is solid rock, packed tight
+   enough to be a wall you cannot slip through; the band nearest the edge is
+   the biggest and is the only rock in the game that PULLS on the gaze, because
+   in a chute the wall beside you is exactly what catches your eye. Inside is
+   mostly open — the odd boulder to break up the fall line, and the occasional
+   scrubby tree clinging to the edge. */
+function chuteAt(i, j, z0){
+  const x0 = i*SP;
+  const cx = chuteX(z0), hw = chuteHW(z0);
+  const off = Math.abs(x0 - cx) - hw;               // <0 inside, >0 into the wall
+
+  /* Nothing at the foot of the wall. Boulders there read as floating: they sit
+     against a swept cliff face that has no contact shadow of its own, so they
+     never look bedded in. The wall is the wall — drawn by drawChuteWalls,
+     enforced by the corridor boundary, and it carries the gaze pull itself
+     (see the wall magnet in the eye update) rather than needing rocks to do
+     it. */
+  if(off > -1.2) return null;
+
+  // inside the corridor
+  const r = rnd(i,j,27);
+  if(r < 0.020) return rockAt(i, j, z0);             // a boulder mid-chute
+  if(r < 0.032){                                     // scrub clinging on
+    const h = 1.0 + 1.6*rnd(i,j,28);
+    return { key:i+','+j, x:x0+(rnd(i,j,29)-.5)*SP*0.8, z:z0+(rnd(i,j,30)-.5)*SP*0.8,
+             h, soft:true, cr:h*0.42, tr:0.10, tint:rnd(i,j,31) };
+  }
+  return null;
+}
+
 function treeAt(i, j){
-  const dens = vnoise(i*0.115, j*0.085, 7);
   const z0 = j * SP;
+  if(CHUTE) return chuteAt(i, j, z0);
+  const dens = vnoise(i*0.115, j*0.085, 7);
   const ramp = Math.min(Math.max(z0,0) / 6000, 0.22);       // the woods tighten as you drop
   const open = clamp((z0 - 9) / 26, 0, 1);                  // an open apron to drop into
   const p = PDENS * (1 + ramp) * (0.30 + 1.35*dens) * open;
@@ -376,7 +434,13 @@ const DIFFS = {
   glades: { name:'The Glades',    desc:'Real tree riding.',
             sp:9.5,  p:.70, vmax:23, fix:1.0, flakes:110, slope:31 },
   steep:  { name:'Steep & Deep',  desc:'Tight, fast, and it stares back.',
-            sp:8.3,  p:.58, vmax:26, fix:1.35, flakes:170, slope:39 }
+            sp:8.3,  p:.58, vmax:26, fix:1.35, flakes:170, slope:39 },
+  /* A couloir: rock walls either side, no forest to speak of. The grid is much
+     finer because a wall has to be near-continuous, and the walls themselves
+     carry the gaze pull — in a chute the thing that catches your eye is the
+     rock beside you, so the one idea survives with nothing to change. */
+  chute:  { name:'The Chute',     desc:'Rock either side. Nowhere to go but down.',
+            sp:4.2,  p:.05, vmax:29, fix:1.5, flakes:150, slope:44, chute:true }
 };
 let diffKey = 'glades';
 
@@ -389,7 +453,7 @@ const mouse = { x: W/2, y: H*0.60, on:false };
 
 function newRun(){
   const d = DIFFS[diffKey];
-  SP = d.sp; PDENS = d.p;
+  SP = d.sp; PDENS = d.p; CHUTE = !!d.chute;
   SLOPE = d.slope * Math.PI/180;
   TANS = Math.tan(SLOPE);
   SEED = (Math.random() * 99991) | 0;
@@ -397,7 +461,8 @@ function newRun(){
   FIX.clear();
   S = {
     d,
-    x: 0, z: 0, yaw: 0, v: 7, turn: 0,
+    x: CHUTE ? chuteX(0) : 0,   // drop in on the fall line, not into the wall
+    z: 0, yaw: 0, v: 7, turn: 0,
     eye:{ x: W/2, y: eyeY0, vx: 0, vy: 0 },
     dist: 0, score: 0, flow: .25, calls: 0, topV: 0, fix: 0, fixTree: null,
     shake: 0, wreckT: 0, t: 0, bob: 0, flash: 0, drawDist: 138, lookDown: 0,
@@ -670,9 +735,11 @@ function update(dt){
   let topFix = 0, topTree = null;
   const gain = S.d.fix * (mode === 'ride' ? 1 : 0);
   for(const t of visible){
-    // Rocks are excluded on purpose: the pull is what "don't look at the trees"
-    // means, and a second source of it would blunt the one idea the game has.
-    if(t.p.cz > 62 || t.soft || t.rock) continue;
+    /* What catches the eye is a property of the obstacle, not its type. A trunk
+       does; a boulder scattered in the gaps does not, or the pull stops meaning
+       "don't look at the trees"; a chute wall does, because in a couloir the
+       rock beside you is exactly the thing you fixate on. */
+    if(t.p.cz > 62 || t.soft || (t.rock && !t.pull)) continue;
     const R = t.R;                                             // apparent crown radius
     // The world is drawn rolled, so the trunk has to be rolled into true screen
     // space before it can be compared with the eye — the eye lives in the head.
@@ -695,6 +762,40 @@ function update(dt){
     const relevance = f * threat;
     if(relevance > topFix){ topFix = relevance; topTree = t; }
   }
+
+  /* The chute wall pulls on its own account. It is swept geometry, not an
+     obstacle in `visible`, so it cannot go through the loop above — but in a
+     couloir the rock beside you is precisely what catches the eye, and without
+     this the one idea the game has would simply not apply in a chute. Sampled
+     at a few distances up each wall; fixation is keyed to a bucket of world z
+     so it accumulates on a particular stretch of rock rather than on whichever
+     sample happens to be nearest this frame. */
+  if(CHUTE && mode === 'ride'){
+    for(const side of [-1, 1]){
+      for(const ahead of [7, 13, 21, 32]){
+        const z = S.z + ahead;
+        const hw = chuteHW(z), wx = chuteX(z) + side*hw;
+        const gy = surfY(wx, z);
+        const p = proj(wx, gy + Math.max(2, chuteWallH(z, side))*0.22, z);
+        if(!p || p.cz > 62) continue;
+        const r = rollPt(p.sx, p.sy);
+        const dx = r.x - E.x, dy = r.y - E.y;
+        const d = Math.hypot(dx, dy) || 1e-3;
+        const R = Math.max(24, p.k * 3.2);           // a face, not a trunk
+        const key = 'w' + side + ':' + Math.round(z/6);
+        let f = fixOf(key);
+        if(d < R*1.05 + 18*SCL) f = Math.min(1, f + dt * 1.5 * S.d.fix);
+        else                    f = Math.max(0, f - dt * 1.25);
+        if(f > 0.002) FIX.set(key, f); else FIX.delete(key);
+        const sal  = clamp(R / (45*SCL), 0, 1.7);
+        const fall = Math.exp(-Math.pow(d / (R*1.6 + 78*SCL), 2));
+        const mag  = 3900 * gain * sal * 0.75 * fall * (0.42 + 1.45*f);
+        ax += mag * dx / d; ay += mag * dy / d;
+        if(f * 0.75 > topFix){ topFix = f * 0.75; topTree = null; }
+      }
+    }
+  }
+
   E.vx += ax*dt; E.vy += ay*dt;
   E.x = clamp(E.x + E.vx*dt, -60, W+60);
   E.y = clamp(E.y + E.vy*dt, 20, H-10);
@@ -733,6 +834,17 @@ function update(dt){
   S.z += S.v * Math.cos(S.yaw) * dt;
   S.dist += S.v * dt;
 
+  /* The couloir wall is authoritative, not emergent. Building it out of jittered
+     boulders and hoping their collision circles overlap does not hold: the
+     jitter alone can open a 3.5m gap, and an adversarial line found a way
+     through in 1 run of every 4 — ending up outside the chute in empty space,
+     which is a worse outcome than crashing. The rocks are the wall's face; this
+     is the wall. */
+  if(CHUTE){
+    const off = Math.abs(S.x - chuteX(S.z)) - chuteHW(S.z);
+    if(off > -0.6){ wreck(); return; }
+  }
+
   /* ── 4. what you just rode past ────────────────────────────────────────── */
   const jA = Math.floor((pz - SP) / SP), jB = Math.floor((S.z + SP) / SP);
   const iA = Math.floor((S.x - 5) / SP), iB = Math.floor((S.x + 5) / SP);
@@ -766,7 +878,16 @@ function update(dt){
     }
   }
   if(S.hitKeys.size > 400) S.hitKeys.clear();
-  for(const k of FIX.keys()){ const j = +k.split(',')[1]; if(j*SP < S.z - 40) FIX.delete(k); }
+  /* Evict fixation for anything now behind you. Two key shapes live in here:
+     "i,j" for obstacle cells and "w<side>:<zbucket>" for stretches of chute
+     wall. Parsing only the first shape leaves the wall keys unreachable and the
+     map grows without bound for the whole run. */
+  for(const k of FIX.keys()){
+    const zBehind = k.charCodeAt(0) === 119            // 'w' — a wall stretch
+      ? (+k.slice(k.indexOf(':')+1)) * 6
+      : (+k.split(',')[1]) * SP;
+    if(zBehind < S.z - 40) FIX.delete(k);
+  }
 
   /* ── 5. flow: reading ahead builds it, fixating burns it ───────────────── */
   const lookDown = clamp((E.y - (S.gazeRef || H*0.60)) / (H*0.26), 0, 1);
@@ -862,6 +983,7 @@ function render(){
   drawSky();
   drawRidges();          // distant peaks sit behind the snow, not on top of it
   drawGround();
+  drawChuteWalls();      // canyon sides, behind anything standing in the chute
   for(const t of visible){
     if(t.clipY !== undefined){       // base hidden behind a nearer crest
       ctx.save();
@@ -940,6 +1062,102 @@ function drawGround(){
      bar spanning the frame reads as a horizon — so every tree beyond it appears
      to float, which is just correct perspective being misread. The terrain's
      own cross-slope shape carries the surface now — nothing is painted on. */
+}
+
+/* The canyon walls. Swept along each edge of the corridor and projected like
+   everything else, so they converge with the chute, ride the terrain's own
+   undulation, and pinch shut at a choke without any special-casing. Drawn
+   before the obstacles: the talus and any mid-chute boulder then sits in front
+   of the rock behind it, which is the ordering that matters here since the
+   walls are at the edges and the obstacles are down the middle. */
+function drawChuteWalls(){
+  if(!CHUTE) return;
+  const far = Math.min(S.drawDist, 160);
+  const sunA = clamp(-0.55 - S.yaw, -1.2, 1.2);
+  const lightX = clamp(Math.tan(sunA) * F / 620, -1, 1);
+  /* The flanks are SNOW first and rock second — that ratio is the whole look.
+     A couloir wall is a snow slope sweeping up and leaning outward as it rises,
+     with rock breaking through it in ribs and outcrops; drawing rock with snow
+     stuck on it gets the relationship backwards and reads as a quarry. FLARE is
+     that outward lean, which is what makes the gully concave rather than a
+     pair of vertical slabs. */
+  const FLARE = 17;
+  const LV = [0, .12, .26, .42, .60, .80, 1];
+
+  const wallPt = (z, f, side) => {
+    const wx = chuteX(z) + side*(chuteHW(z) + FLARE*Math.pow(f, 1.5));
+    const gy = surfY(wx, z);
+    return proj(wx, gy + Math.max(3, chuteWallH(z, side))*f, z);
+  };
+
+  for(const side of [-1, 1]){
+    const lit = (side > 0) === (lightX > 0);
+    const lvl = LV.map(() => []);
+    for(let d = 1.6; d <= far; d *= 1.035){
+      const z = S.z + d;
+      const ps = LV.map(f => wallPt(z, f, side));
+      if(ps.some(p => !p)) continue;
+      ps.forEach((p, k) => lvl[k].push(p.sx, p.sy));
+    }
+    if(lvl[0].length < 6) continue;
+    const base = lvl[0], top = lvl[LV.length-1];
+
+    // the snow flank
+    ctx.beginPath();
+    ctx.moveTo(base[0], base[1]);
+    for(let n=2;n<base.length;n+=2) ctx.lineTo(base[n], base[n+1]);
+    for(let n=top.length-2;n>=0;n-=2) ctx.lineTo(top[n], top[n+1]);
+    ctx.closePath();
+    const g = ctx.createLinearGradient(0, cam.skyMed - 260, 0, cam.skyMed + 200);
+    if(lit){ g.addColorStop(0,'#dfeaf7'); g.addColorStop(.6,'#eef4fb'); g.addColorStop(1,'#f7fbff'); }
+    else   { g.addColorStop(0,'#a8bcd6'); g.addColorStop(.6,'#c2d2e6'); g.addColorStop(1,'#d8e4f1'); }
+    ctx.fillStyle = g; ctx.fill();
+
+    ctx.save(); ctx.clip();
+
+    /* Rock breaking through. Drawn as irregular blobs around a centre rather
+       than quads spanning a height band: a band-quad gets foreshortened into a
+       long thin sliver and the wall ends up looking like broken glass. Placed
+       with value noise over (run, height) so outcrops clump into ribs and
+       buttresses — coherence is what makes them read as geology. */
+    const zStart = Math.floor(S.z/4)*4;
+    for(let zz = zStart; zz < S.z + far; zz += 4){
+      for(let k = 1; k < LV.length-1; k++){
+        const n = vnoise(zz*0.055, k*1.31 + (side>0?11:29), 53);
+        if(n < 0.52 - k*0.028) continue;             // more rock higher up
+        const bucket = Math.round(zz/4);
+        const cz = zz + rnd(bucket,k,61)*3;
+        const cf = LV[k] + (LV[k+1]-LV[k]) * (0.2 + 0.6*rnd(bucket,k,63));
+        const scale = 0.55 + 0.75*rnd(bucket,k,65);
+        const pts = [];
+        for(let a = 0; a < 7; a++){
+          const ang = a/7 * 6.2832;
+          const rad = 0.65 + 0.55*rnd(bucket, a + k*7, 67);
+          const p = wallPt(cz + Math.cos(ang)*rad*scale*4.2,
+                           clamp(cf + Math.sin(ang)*rad*scale*0.085, 0.02, 1), side);
+          if(!p){ pts.length = 0; break; }
+          pts.push(p);
+        }
+        if(pts.length < 7) continue;
+        ctx.beginPath(); ctx.moveTo(pts[0].sx, pts[0].sy);
+        for(let m=1;m<pts.length;m++) ctx.lineTo(pts[m].sx, pts[m].sy);
+        ctx.closePath();
+        const t = clamp((n - 0.5) * 3, 0, 1);
+        ctx.fillStyle = lit ? `rgba(104,99,99,${0.38 + 0.42*t})`
+                            : `rgba(60,62,72,${0.42 + 0.44*t})`;
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // The toe is a soft shadow, not a line: corridor snow and flank snow are
+    // the same surface, and an edge there would read as a seam.
+    ctx.beginPath();
+    ctx.moveTo(base[0], base[1]);
+    for(let n=2;n<base.length;n+=2) ctx.lineTo(base[n], base[n+1]);
+    ctx.strokeStyle = lit ? 'rgba(150,176,206,.22)' : 'rgba(120,146,180,.30)';
+    ctx.lineWidth = 7; ctx.lineJoin = 'round'; ctx.stroke();
+  }
 }
 
 function drawRidges(){
