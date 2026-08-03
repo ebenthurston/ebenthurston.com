@@ -14,6 +14,8 @@ Roughly 69% of AI crawlers cannot execute JavaScript, according to research by V
 
 The homepage carries a single JSON-LD `@graph` with four cross-referenced nodes: `Person` (the entity this site exists to define, with `jobTitle`, `worksFor`, `knowsAbout`, and `sameAs` links to verified profiles), `WebSite`, `ProfilePage` (which tells crawlers the page's main entity *is* the person), and `FAQPage` (mirroring the visible FAQ verbatim). Each article adds `Article` markup whose `author` points back to the same `Person` node by `@id`. The goal is entity disambiguation: any system parsing this site should come away certain about who Eben Thurston is, what he does, and which external profiles belong to the same person.
 
+None of that requires taking the site's word for it. The markup can be inspected directly in the [Schema.org validator](https://validator.schema.org/#url=https%3A%2F%2Febenthurston.com%2F) and in [Google's Rich Results Test](https://search.google.com/test/rich-results?url=https%3A%2F%2Febenthurston.com%2F), and the source is [public on GitHub](https://github.com/ebenthurston/ebenthurston.com).
+
 ## Why does the robots.txt welcome AI crawlers?
 
 Many sites block AI crawlers by default — Cloudflare now ships blocking as a default setting. For a personal brand, that is backwards: the entire point is to be read, retrieved, and cited. This site's robots.txt explicitly allows GPTBot, ClaudeBot, PerplexityBot, Google-Extended, Bingbot, and CCBot, with a comment block stating the policy in plain language. Sitemaps are registered with both Google Search Console and Bing Webmaster Tools, and IndexNow pings Bing on publish — relevant because Bing's index feeds ChatGPT's browsing.
