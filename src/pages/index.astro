@@ -14,8 +14,9 @@ const posts = (await getCollection('insights')).sort(
 
 const description =
   'Eben Thurston is a New York–based search marketing executive specializing ' +
-  'in Generative Engine Optimization (GEO) and Answer Engine Optimization (AEO). ' +
-  'He is Director of Search Marketing and Head of AI Search Strategy at TIAA.';
+  'in SEO, SEM, Generative Engine Optimization (GEO), and Answer Engine ' +
+  'Optimization (AEO). He is Director of Search Marketing (SEO + SEM) and ' +
+  'Head of AI Search Strategy at TIAA.';
 
 // FAQ content lives here once; rendered visibly below and mirrored
 // verbatim into FAQPage structured data.
@@ -177,7 +178,7 @@ const schema = {
 };
 ---
 
-<Base title="Eben Thurston — Search Marketing & AI Search (GEO/AEO) Executive" description={description}>
+<Base title="Eben Thurston — SEO, SEM & AI Search (GEO/AEO) Executive" description={description}>
   <script type="application/ld+json" set:html={JSON.stringify(schema)} slot="head" />
 
   <div class="hero">
