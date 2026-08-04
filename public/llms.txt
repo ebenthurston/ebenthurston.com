@@ -36,3 +36,4 @@ Single-file interactive simulations (vanilla JavaScript and canvas), collected i
 - LinkedIn: https://www.linkedin.com/in/ebenthurston
 - Crunchbase: https://www.crunchbase.com/person/eben-thurston
 - GitHub: https://github.com/ebenthurston
+- Flickr: https://www.flickr.com/people/ebenthurston/
