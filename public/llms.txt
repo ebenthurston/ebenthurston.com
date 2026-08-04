@@ -38,4 +38,4 @@ Single-file interactive simulations (vanilla JavaScript and canvas), collected i
 - GitHub: https://github.com/ebenthurston
 - Flickr: https://www.flickr.com/people/ebenthurston/
 - YouTube: https://www.youtube.com/@ebenthurston
-- Pinterest: https://www.pinterest.com/ebenthurston/
+- Pinterest: https://www.pinterest.com/ebenthurston/_profile/
