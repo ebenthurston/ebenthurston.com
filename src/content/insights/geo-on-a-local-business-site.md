@@ -43,11 +43,3 @@ Nobody is going to audit a fourteen-page site every quarter. The failures that m
 So it is enforced mechanically. A script runs after every build and fails the deploy if two pages share a title or description, if a title exceeds 60 characters or a description 158, if any page lacks JSON-LD, if that JSON-LD does not parse, or if any `@id` reference points at a node that does not exist.
 
 It fired during the rebuild, on a 168-character description I had just written. The deploy stopped and the previous version stayed live until the sentence was shorter. On a site nobody has time to audit, that is the difference between a standard and an intention.
-
-## What was deliberately left out?
-
-No `Review` schema on the ClassPass testimonials quoted on the site. They are third-party reviews, not reviews the site collected, and Google shows no review rich results for self-serving `LocalBusiness` markup regardless.
-
-No `Event` markup on the six weekly classes. `Event` wants a concrete `startDate`; recurring classes would mean dozens of future-dated nodes going stale unnoticed. When a one-off workshop is scheduled, that gets an `Event`.
-
-No performance claims. The site launched days ago and Search Console needs weeks. The baseline it will be measured against is six months of pre-launch data: 549 clicks from 10,915 impressions, with the inner pages at a 0.87% click-through rate. That post comes later.
