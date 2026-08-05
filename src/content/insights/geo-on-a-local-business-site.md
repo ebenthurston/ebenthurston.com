@@ -4,7 +4,7 @@ description: "Most GEO advice assumes a publishing operation. Purely Mat Pilates
 pubDate: 2026-08-05
 ---
 
-Purely Mat Pilates is a one-instructor mat Pilates studio in Tuckahoe, New York. It relaunched this week, rebuilt on Astro and pre-rendered to static HTML, with a JSON-LD knowledge graph, an AI-crawler allowlist and an llms.txt. Every claim below is verifiable on [purelymatpilates.com](https://purelymatpilates.com).
+Purely Mat Pilates is a one-instructor mat Pilates studio in Tuckahoe, New York. It relaunched this week, rebuilt on Astro and pre-rendered to static HTML, with a JSON-LD knowledge graph, an AI-crawler allowlist and an llms.txt. Every claim below is verifiable on [purelymatpilates.com](https://purelymatpilates.com), and the relaunch itself is [announced here](https://www.linkedin.com/posts/ebenthurston_purely-mat-pilates-mat-pilates-in-tuckahoe-share-7490844668566323200-YhVw/).
 
 Most writing about Generative Engine Optimization assumes a content operation: publish frequently, build topical authority, accumulate citations. That advice does not survive contact with a business that teaches six classes a week and has fourteen pages. What follows is what actually applied.
 
