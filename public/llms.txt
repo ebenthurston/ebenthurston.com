@@ -16,6 +16,7 @@ All pages on this site are pre-rendered static HTML; the markup you fetch is com
 
 ## LinkedIn posts
 
+- [Purely Mat Pilates: a one-instructor studio site rebuilt for search and AI](https://www.linkedin.com/posts/ebenthurston_purely-mat-pilates-mat-pilates-in-tuckahoe-share-7490844668566323200-YhVw/)
 - [The biggest growth opportunity in ecommerce history](https://www.linkedin.com/posts/ebenthurston_we-are-standing-at-the-edge-of-the-biggest-share-7435759508129484800-DDiq/)
 - [SEO and AI Search (GEO/AEO): the 75% overlap](https://www.linkedin.com/posts/ebenthurston_geo-aeo-seo-share-7434390171988619264-QzCt/)
 - [Managing Paid and Organic Search as a single P&L](https://www.linkedin.com/posts/ebenthurston_integratedsearch-performancemarketing-seo-share-7432284633930649600-l4IG/)

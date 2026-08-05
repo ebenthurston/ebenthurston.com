@@ -5,6 +5,11 @@
 export const linkedInPosts = [
   {
     title:
+      'Purely Mat Pilates: a one-instructor studio site rebuilt for search and AI',
+    url: 'https://www.linkedin.com/posts/ebenthurston_purely-mat-pilates-mat-pilates-in-tuckahoe-share-7490844668566323200-YhVw/',
+  },
+  {
+    title:
       'The biggest growth opportunity in ecommerce history: how commerce evolved, and where it goes next',
     url: 'https://www.linkedin.com/posts/ebenthurston_we-are-standing-at-the-edge-of-the-biggest-share-7435759508129484800-DDiq/',
   },
