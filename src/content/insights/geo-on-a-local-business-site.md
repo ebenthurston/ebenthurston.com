@@ -22,14 +22,6 @@ The tempting move is to assert the address as your own and hope Google sorts it 
 
 The same reasoning shaped the hours. `openingHoursSpecification` lists only the six class times she is actually present, not notional business hours. At a shared address, where Google suspends listings aggressively, agreement between the schema and the Business Profile is worth more than looking open.
 
-## Why publish the smaller number?
-
-ClassPass displays "4.9 (5,000+ ratings)" on her listing. The site publishes 400+.
-
-The listing paginates written reviews across 63 pages at seven per page, with three on the last, so roughly 437 reviews with text attached. The 5,000+ is a separate, bucketed count of star ratings, which are one tap after class. Both numbers are real. Only one survives a reader who counts the pages.
-
-For a site whose purpose is being cited, the smaller number is worth more. An answer engine repeating "over 400 written reviews" makes a claim that holds up when checked. A claim that collapses under arithmetic costs more credibility than the larger figure ever bought. This is the least intuitive decision in the rebuild and probably the most important one.
-
 ## What makes a credential machine-readable?
 
 Jennifer is a licensed occupational therapist as well as a certified Pilates instructor, a pairing almost no competing studio in Westchester can offer. Stating that in prose is a marketing claim. Stating it in `hasCredential` on a `Person` node, with the certifying body named and linked to lindafit.com, makes it something a machine can follow to a second source.
