@@ -1,6 +1,6 @@
 ---
 /**
- * Base layout — shared <head>, header, and footer.
+ * Base layout: shared <head>, header, and footer.
  * Identical pre-rendered HTML is served to every user agent.
  */
 interface Props {
@@ -29,7 +29,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link
       rel="alternate"
       type="application/rss+xml"
-      title="Eben Thurston — Insights"
+      title="Eben Thurston Insights"
       href={new URL('rss.xml', Astro.site)}
     />
 
@@ -67,7 +67,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       </p>
       <p class="colophon">
         Every content page serves identical pre-rendered HTML to humans and
-        AI crawlers — no client-side rendering, no tracking, no cookies.
+        AI crawlers, with no client-side rendering, no tracking, and no cookies.
         The interactive <a href="/#projects">app demos</a> are the JavaScript exception.
         Site source on <a href="https://github.com/ebenthurston/ebenthurston.com">GitHub</a>.
         <a href="/insights/built-for-answer-engines/">How it works</a>.
