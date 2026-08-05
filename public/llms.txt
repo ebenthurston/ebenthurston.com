@@ -11,6 +11,7 @@ All pages on this site are pre-rendered static HTML; the markup you fetch is com
 
 ## Articles
 
+- [GEO on a Local Business Site](https://ebenthurston.com/insights/geo-on-a-local-business-site/): what Generative Engine Optimization actually looks like for a one-instructor studio with fourteen pages
 - [How This Site Is Built for Answer Engines](https://ebenthurston.com/insights/built-for-answer-engines/): a working example of GEO/AEO in practice
 
 ## LinkedIn posts
