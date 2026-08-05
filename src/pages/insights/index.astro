@@ -9,12 +9,12 @@ const posts = (await getCollection('insights')).sort(
 ---
 
 <Base
-  title="Insights — Eben Thurston"
+  title="Insights | Eben Thurston"
   description="Articles by Eben Thurston on GEO, AEO, and enterprise search strategy in the AI era."
 >
   <h1>Insights</h1>
   <p class="lede">
-    Notes on GEO, AEO, and enterprise search strategy — written from
+    Notes on GEO, AEO, and enterprise search strategy, written from
     practice, not theory.
   </p>
 
@@ -27,7 +27,7 @@ const posts = (await getCollection('insights')).sort(
           <time datetime={post.data.pubDate.toISOString().slice(0, 10)}>
             {post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </time>
-          {' — '}
+          {' · '}
           {post.data.description}
         </span>
       </li>

@@ -5,7 +5,7 @@
  * and copied into public/ as-is, so they carry no <head> metadata of their
  * own. The injectAppMetadata integration in astro.config.mjs uses this table
  * to add canonical URLs, descriptions, social tags, favicons, and
- * SoftwareApplication structured data at build time — which means the app
+ * SoftwareApplication structured data at build time, which means the app
  * files can be replaced wholesale without any of it being lost.
  */
 export const SITE = 'https://ebenthurston.com';
@@ -29,7 +29,7 @@ export const apps = [
     slug: 'powder',
     name: 'Powder',
     description:
-      "First-person backcountry snowboarding where the board follows the rider's gaze. Stare at a tree and you hit it — ride the gaps to build flow.",
+      "First-person backcountry snowboarding where the board follows the rider's gaze. Stare at a tree and you hit it, so ride the gaps to build flow.",
     category: 'GameApplication',
   },
   {
