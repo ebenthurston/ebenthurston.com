@@ -22,6 +22,8 @@ The tempting move is to assert the address as your own and hope Google sorts it 
 
 The same reasoning shaped the hours. `openingHoursSpecification` lists only the six class times she is actually present, not notional business hours. At a shared address, where Google suspends listings aggressively, agreement between the schema and the Business Profile is worth more than looking open.
 
+None of this requires taking the site's word for it. The graph can be inspected directly in the [Schema.org validator](https://validator.schema.org/#url=https%3A%2F%2Fpurelymatpilates.com%2F) and in [Google's Rich Results Test](https://search.google.com/test/rich-results?url=https%3A%2F%2Fpurelymatpilates.com%2F), and the [robots.txt](https://purelymatpilates.com/robots.txt) and [llms.txt](https://purelymatpilates.com/llms.txt) are readable directly.
+
 ## What makes a credential machine-readable?
 
 Jennifer is a licensed occupational therapist as well as a certified Pilates instructor, a pairing almost no competing studio in Westchester can offer. Stating that in prose is a marketing claim. Stating it in `hasCredential` on a `Person` node, with the certifying body named and linked to lindafit.com, makes it something a machine can follow to a second source.
