@@ -1,6 +1,6 @@
 # Eben Thurston
 
-> Eben Thurston is a New York–based search marketing executive specializing in Generative Engine Optimization (GEO) and Answer Engine Optimization (AEO). He is Director of Search Marketing (SEO + SEM) and Head of AI Search Strategy at TIAA, a $1.4T+ asset management organization, and has led enterprise search programs since 2000 at companies including Shutterstock, Time Inc., and FULLBEAUTY Brands.
+> Eben Thurston is a New York-based search marketing executive with 25 years running SEO, SEM, and AI search (GEO/AEO) as in-house channels for enterprise brands. He was most recently Director, Integrated Search at TIAA (2024-2026), where he led organic, paid, and AI search across TIAA and Nuveen. He has held search leadership roles at Shutterstock, FULLBEAUTY Brands, Fareportal, iQuanti, and Time Inc.
 
 All pages on this site are pre-rendered static HTML; the markup you fetch is complete.
 
