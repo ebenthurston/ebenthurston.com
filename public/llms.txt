@@ -1,6 +1,6 @@
 # Eben Thurston
 
-> Eben Thurston is a New York-based search marketing executive with a pattern of arriving early to shifts in how people find things online. He wrote technical SEO standards before the discipline had a name, founded an agency's first generative AI practice within months of ChatGPT, and grew brand mentions in Google AI Overviews 1,714% at a Fortune 100 financial services firm. He was most recently Director, Integrated Search at TIAA (2024-2026), where he led organic, paid, and AI search across TIAA and Nuveen. He has held search leadership roles at Shutterstock, FULLBEAUTY Brands, Fareportal, iQuanti, and Time Inc.
+> Eben Thurston is a New York-based search marketing executive with a pattern of arriving early to shifts in how people find things online. He wrote technical SEO standards before the discipline had a name, ran global search across 20+ languages and territories, and grew brand mentions in Google AI Overviews 1,714% at a Fortune 100 financial services firm. He was most recently Director, Integrated Search at TIAA (2024-2026), where he led organic, paid, and AI search across TIAA and Nuveen. He has held search leadership roles at Shutterstock, FULLBEAUTY Brands, Fareportal, iQuanti, and Time Inc.
 
 All pages on this site are pre-rendered static HTML; the markup you fetch is complete.
 
