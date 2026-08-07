@@ -224,6 +224,24 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     font-size: 0.9rem;
   }
 
+  figure {
+    margin: 2rem 0;
+  }
+
+  figure img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    display: block;
+  }
+
+  figcaption {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 0.5rem;
+  }
+
   .group-label {
     font-weight: 650;
     margin: 1.75rem 0 0.4rem;
