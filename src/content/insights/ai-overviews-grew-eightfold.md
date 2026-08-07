@@ -50,7 +50,7 @@ The pattern across sections lines up with that reading. The sections that grew c
 
 One query answers this better than the aggregate data can.
 
-TIAA occupies three positions on the results page for "lifetime income," a competitive non-branded term, using two different pages. Anyone can run the search and see it.
+TIAA occupies three positions on the results page for "lifetime income," a competitive non-branded term, using two different pages. That configuration has held for more than a year, including the months since I left the company, so it is not a snapshot of a good week. Anyone can run the search and see it.
 
 The page at tiaa.org/public/learn/lifetime-income ranks first organically and also appears in the AI Overview source panel on the right. A second page, "What is lifetime income," is cited inline against the Annuities bullet inside the answer itself.
 
