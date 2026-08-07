@@ -50,9 +50,11 @@ The pattern across sections lines up with that reading. The sections that grew c
 
 One query answers this better than the aggregate data can.
 
-TIAA ranks first organically for "lifetime income," a competitive non-branded term, and the same page appears as a source in Google's AI Overview for that query. Anyone can run the search and see both. In the source panel, the Department of Labor sits first and TIAA second, and the lead definitional sentence attributes to BlackRock and four others, so the honest description is "cited," not "leads."
+TIAA occupies three positions on the results page for "lifetime income," a competitive non-branded term, using two different pages. Anyone can run the search and see it.
 
-The pairing is the point. Position one in the ranked results and a citation in the generated answer, on the same page, for the same query.
+The page at tiaa.org/public/learn/lifetime-income ranks first organically and also appears in the AI Overview source panel on the right. A second page, "What is lifetime income," is cited inline against the Annuities bullet inside the answer itself.
+
+Precision matters on what this is not. The Department of Labor sits above TIAA in the source panel, and the lead definitional sentence attributes to BlackRock and four others. TIAA is cited, not leading. But it is cited twice, in two different mechanisms, on a query where it also holds the top blue link.
 
 In 2023 I published research measuring the overlap between the top three citations in Google's Search Generative Experience and the top three organic results for the same queries. The overlap was high. The conclusion then was that generative answers were drawing from pages that already ranked, which meant classic ranking work was not obsolete but load-bearing. Three years later, on a page I worked on, that is what the mechanism looks like in production.
 
