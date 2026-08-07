@@ -61,7 +61,11 @@ The page at tiaa.org/public/learn/lifetime-income ranks first organically and al
 
 Precision matters on what this is not. The Department of Labor sits above TIAA in the source panel, and the lead definitional sentence attributes to BlackRock and four others. TIAA is cited, not leading. But it is cited twice, in two different mechanisms, on a query where it also holds the top blue link.
 
-In 2023 I published research measuring the overlap between the top three citations in Google's Search Generative Experience and the top three organic results for the same queries. The overlap was high. The conclusion then was that generative answers were drawing from pages that already ranked, which meant classic ranking work was not obsolete but load-bearing. Three years later, on a page I worked on, that is what the mechanism looks like in production.
+In 2023, at iQuanti, I ran a small study on exactly this question. We took 32 high-volume banking, financial services and insurance keywords, recorded the three URLs Google's Search Generative Experience cited for each, then recorded the top three organic results for the same keyword and compared them.
+
+On 75% of the keywords, at least one of the top three organic results also appeared in the SGE citations. The distribution matters more than the headline: one URL matched on 56% of keywords, two matched on 16%, all three matched on a single keyword out of 32, and a quarter of keywords showed no overlap at all.
+
+So the honest read was never that ranking guarantees citation. It was that Google appeared to be scoring content similarly for both, which meant optimization tactics that worked for SEO would likely work for generative results, and that quality content was still quality content. Three years later, on a page I worked on, that is what the mechanism looks like in production.
 
 ## What changes about measurement?
 
