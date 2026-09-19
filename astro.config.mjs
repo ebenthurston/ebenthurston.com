@@ -91,6 +91,9 @@ export default defineConfig({
   trailingSlash: 'ignore',
   integrations: [
     sitemap({
+      // The Christina Harris memorial page is unlisted: noindex in the page
+      // head, nothing links to it, and it stays out of the sitemap.
+      filter: (page) => !page.includes('/christina-harris'),
       customPages: [
         `${SITE}/sandbox/`,
         ...apps.map((a) => `${SITE}/${a.slug}/`),

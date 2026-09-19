@@ -26,5 +26,25 @@
       "destination": "/",
       "statusCode": 301
     }
+  ],
+  "headers": [
+    {
+      "source": "/christina-harris",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/christina-harris/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
   ]
 }

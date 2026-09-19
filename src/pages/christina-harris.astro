@@ -1,0 +1,424 @@
+---
+/**
+ * Memorial page for Christina Harris.
+ *
+ * Deliberately standalone: it does not use Base.astro, so none of the site's
+ * header, footer or colophon appears here. Unlisted by default — noindex, and
+ * excluded from the sitemap in astro.config.mjs. Nothing links to it.
+ *
+ * ALL EDITABLE COPY IS IN THE `copy` OBJECT BELOW.
+ */
+import { Picture } from 'astro:assets';
+import programFront from '../assets/christina-harris-program-1.jpg';
+import programBack from '../assets/christina-harris-program-2.jpg';
+
+// Swapping this one line re-points both buttons, e.g. if UCS provides a
+// dedicated form with the tribute already filled in.
+const DONATE_URL =
+  'https://app.etapestry.com/onlineforms/UnitedCounselingServiceofBenn/give.html';
+
+const PROGRAM_PDF = '/christina-harris/christina-harris-program.pdf';
+
+const copy = {
+  name: 'Christina Harris',
+  dates: 'December 22, 1948 – August 7, 2026',
+
+  donateHeading: "Give in Christina's memory",
+
+  // EBEN: confirm this sentence. The clause about UCS being "the place she
+  // called home" is a placeholder written without knowing the connection.
+  donateBody:
+    "Christina's family invites gifts in her memory to United Counseling " +
+    'Service of Bennington County, which provides mental health and community ' +
+    'services in the place she called home.',
+
+  buttonLabel: 'Donate to UCS in memory of Christina',
+
+  stepsIntro: 'On the donation form:',
+  steps: [
+    'Choose an amount. The <strong>Fund</strong> can stay on <strong>General</strong>.',
+    'Scroll to <strong>Tribute</strong>. Set <em>Tribute Type</em> to <strong>in memory of</strong>.',
+    'In <em>Tribute Name</em>, type <strong>Christina Harris</strong>.',
+  ],
+
+  checkLine:
+    'Prefer to give by check? Make it out to United Counseling Service, write ' +
+    '"In memory of Christina Harris" on the memo line, and mail it to United ' +
+    'Counseling Service, Attn: Heidi French, PO Box 588, Bennington, VT 05201.',
+  phoneLabel: 'Questions:',
+  phone: '(802) 442-5491',
+  phoneHref: 'tel:+18024425491',
+
+  // Short line used beside the second button.
+  donateShort:
+    "Gifts in Christina's memory go to United Counseling Service of Bennington County.",
+
+  pdfLabel: 'Download the program (PDF)',
+
+  altFront:
+    'Memorial program for Christina Harris, December 22, 1948 – August 7, 2026: ' +
+    'a portrait of Christina as a young woman with long blonde hair, surrounded ' +
+    'by photos of her as a baby, a child and a teenager.',
+  altBack:
+    'Six black-and-white photos of Christina with family and friends, with the ' +
+    'Metta Prayer and a line from Thich Nhat Hanh.',
+};
+
+const ogTitle = 'In memory of Christina Harris';
+const ogDescription =
+  'December 22, 1948 – August 7, 2026. Gifts in her memory may be made to United Counseling Service.';
+const ogImage = new URL('/christina-harris/og-christina-harris.jpg', Astro.site);
+const canonical = new URL('/christina-harris/', Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>In memory of Christina Harris</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content={ogDescription} />
+    <link rel="canonical" href={canonical} />
+
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <link
+      rel="preload"
+      href="/fonts/mrs-saint-delafield-name.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogTitle} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+
+  <body>
+    <main>
+      <header class="masthead">
+        <h1>{copy.name}</h1>
+        <p class="dates">{copy.dates}</p>
+      </header>
+
+      <section class="donate" aria-labelledby="donate-top">
+        <h2 id="donate-top">{copy.donateHeading}</h2>
+        <p>{copy.donateBody}</p>
+
+        <a class="button" href={DONATE_URL} target="_blank" rel="noopener">
+          {copy.buttonLabel}
+        </a>
+
+        <p class="steps-intro">{copy.stepsIntro}</p>
+        <ol class="steps">
+          {copy.steps.map((step) => <li set:html={step} />)}
+        </ol>
+
+        <p class="fineprint">
+          {copy.checkLine}{' '}
+          {copy.phoneLabel} <a href={copy.phoneHref}>{copy.phone}</a>
+        </p>
+      </section>
+
+      <figure class="program">
+        <Picture
+          src={programFront}
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          widths={[480, 720, 1080, 1440]}
+          sizes="(max-width: 760px) 100vw, 720px"
+          alt={copy.altFront}
+          loading="eager"
+          fetchpriority="high"
+        />
+        <figcaption>
+          <blockquote>
+            Life is eternal and love is immortal and death is only a horizon; and
+            a horizon is nothing save the limit of our sight.
+          </blockquote>
+          <cite>Rossiter Worthington Raymond</cite>
+        </figcaption>
+      </figure>
+
+      <figure class="program">
+        <Picture
+          src={programBack}
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          widths={[480, 720, 1080, 1440]}
+          sizes="(max-width: 760px) 100vw, 720px"
+          alt={copy.altBack}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          <blockquote class="prayer">
+            May all beings be peaceful<br />
+            May all beings be happy<br />
+            May all beings be safe<br />
+            May all beings awaken to the light of their true nature<br />
+            May all beings be free
+          </blockquote>
+          <cite>Metta Prayer</cite>
+
+          <blockquote>
+            Together my mother and I were leaving footprints in the damp soil.
+          </blockquote>
+          <cite>Thich Nhat Hanh</cite>
+        </figcaption>
+      </figure>
+
+      <section class="donate donate-repeat" aria-labelledby="donate-bottom">
+        <h2 id="donate-bottom" class="visually-hidden">
+          {copy.donateHeading}
+        </h2>
+        <a class="button" href={DONATE_URL} target="_blank" rel="noopener">
+          {copy.buttonLabel}
+        </a>
+        <p class="short">{copy.donateShort}</p>
+      </section>
+
+      <p class="pdf">
+        <a href={PROGRAM_PDF} download>{copy.pdfLabel}</a>
+      </p>
+    </main>
+
+    <style>
+      @font-face {
+        font-family: 'Mrs Saint Delafield';
+        src: url('/fonts/mrs-saint-delafield-name.woff2') format('woff2');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      :root {
+        --paper: #f1efea;
+        --ink-blue: #2f3f8f;
+        --text: #33352f;
+        --text-soft: #6a6c64;
+        --rule: #ddd9d0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--text);
+        font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino,
+          'Times New Roman', serif;
+        font-size: 1.0625rem;
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      main {
+        max-width: 720px;
+        margin-inline: auto;
+        padding: 3rem 1.25rem 4.5rem;
+      }
+
+      .masthead {
+        text-align: center;
+        margin-bottom: 2.75rem;
+      }
+
+      h1 {
+        font-family: 'Mrs Saint Delafield', cursive;
+        font-weight: 400;
+        color: var(--ink-blue);
+        font-size: clamp(3.25rem, 13vw, 5.5rem);
+        line-height: 1.05;
+        margin: 0;
+        /* The script sits high in its em box; nudge the optical balance. */
+        padding-block: 0.1em 0.14em;
+      }
+
+      .dates {
+        color: var(--ink-blue);
+        font-size: clamp(1rem, 4.2vw, 1.2rem);
+        letter-spacing: 0.02em;
+        margin: 0.35rem 0 0;
+        padding-top: 1rem;
+        border-top: 1px solid var(--rule);
+        display: inline-block;
+      }
+
+      .donate {
+        background: #faf9f6;
+        border: 1px solid var(--rule);
+        border-radius: 10px;
+        padding: 1.75rem 1.5rem;
+        margin-block: 2.5rem;
+      }
+
+      .donate h2 {
+        font-size: 1.3rem;
+        color: var(--ink-blue);
+        margin: 0 0 0.75rem;
+        line-height: 1.3;
+      }
+
+      .donate p {
+        margin: 0 0 1.25rem;
+      }
+
+      .button {
+        display: block;
+        width: 100%;
+        background: var(--ink-blue);
+        color: #fff;
+        text-decoration: none;
+        text-align: center;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Helvetica, Arial, sans-serif;
+        font-size: 1.0625rem;
+        font-weight: 600;
+        line-height: 1.35;
+        padding: 0.95rem 1.25rem;
+        min-height: 3rem;
+        border-radius: 8px;
+      }
+
+      .button:hover,
+      .button:focus-visible {
+        background: #26337a;
+      }
+
+      .steps-intro {
+        margin: 1.5rem 0 0.4rem;
+        font-size: 0.95rem;
+        color: var(--text-soft);
+      }
+
+      ol.steps {
+        margin: 0;
+        padding-left: 1.3rem;
+        font-size: 0.95rem;
+      }
+
+      ol.steps li {
+        margin-block: 0.4rem;
+      }
+
+      .fineprint {
+        font-size: 0.9rem;
+        color: var(--text-soft);
+        margin: 1.5rem 0 0 !important;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--rule);
+      }
+
+      .fineprint a {
+        color: var(--ink-blue);
+        white-space: nowrap;
+      }
+
+      .donate-repeat {
+        text-align: center;
+      }
+
+      .donate-repeat .short {
+        margin: 1rem 0 0;
+        font-size: 0.92rem;
+        color: var(--text-soft);
+      }
+
+      figure.program {
+        margin: 3rem 0;
+      }
+
+      figure.program :global(img) {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 1px solid var(--rule);
+        border-radius: 6px;
+        background: var(--paper);
+      }
+
+      figcaption {
+        margin-top: 1.75rem;
+        text-align: center;
+      }
+
+      blockquote {
+        margin: 0;
+        color: var(--ink-blue);
+        font-size: 1.05rem;
+        font-style: italic;
+        line-height: 1.75;
+        max-width: 34rem;
+        margin-inline: auto;
+      }
+
+      blockquote.prayer {
+        font-style: normal;
+      }
+
+      cite {
+        display: block;
+        margin: 0.5rem 0 2rem;
+        font-size: 0.85rem;
+        font-style: normal;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-soft);
+      }
+
+      cite:last-child {
+        margin-bottom: 0;
+      }
+
+      .pdf {
+        text-align: center;
+        margin: 2.5rem 0 0;
+        font-size: 0.95rem;
+      }
+
+      .pdf a {
+        color: var(--ink-blue);
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        clip-path: inset(50%);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 480px) {
+        main {
+          padding-top: 2.25rem;
+        }
+
+        .donate {
+          padding: 1.35rem 1.15rem;
+        }
+      }
+    </style>
+  </body>
+</html>
