@@ -49,10 +49,6 @@ const copy = {
   phone: '(802) 442-5491',
   phoneHref: 'tel:+18024425491',
 
-  // Short line used beside the second button.
-  donateShort:
-    "Gifts in Christina's memory go to United Counseling Service of Bennington County.",
-
   pdfLabel: 'Download the program (PDF)',
 
   altFront:
@@ -85,13 +81,6 @@ const canonical = new URL('/christina-harris/', Astro.site);
     <link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <link
-      rel="preload"
-      href="/fonts/mrs-saint-delafield-name.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={ogTitle} />
@@ -109,31 +98,18 @@ const canonical = new URL('/christina-harris/', Astro.site);
 
   <body>
     <main>
-      <header class="masthead">
+      <!--
+        The program itself opens the page: it already carries her name and
+        dates in the script they were set in, so the heading below is present
+        for screen readers and translation tools rather than repeated on
+        screen. Donating comes after the program, not before it.
+      -->
+      <header class="visually-hidden">
         <h1>{copy.name}</h1>
-        <p class="dates">{copy.dates}</p>
+        <p>{copy.dates}</p>
       </header>
 
-      <section class="donate" aria-labelledby="donate-top">
-        <h2 id="donate-top">{copy.donateHeading}</h2>
-        <p>{copy.donateBody}</p>
-
-        <a class="button" href={DONATE_URL} target="_blank" rel="noopener">
-          {copy.buttonLabel}
-        </a>
-
-        <p class="steps-intro">{copy.stepsIntro}</p>
-        <ol class="steps">
-          {copy.steps.map((step) => <li set:html={step} />)}
-        </ol>
-
-        <p class="fineprint">
-          {copy.checkLine}{' '}
-          {copy.phoneLabel} <a href={copy.phoneHref}>{copy.phone}</a>
-        </p>
-      </section>
-
-      <figure class="program">
+      <figure class="program program-first">
         <Picture
           src={programFront}
           formats={['avif', 'webp']}
@@ -181,14 +157,23 @@ const canonical = new URL('/christina-harris/', Astro.site);
         </figcaption>
       </figure>
 
-      <section class="donate donate-repeat" aria-labelledby="donate-bottom">
-        <h2 id="donate-bottom" class="visually-hidden">
-          {copy.donateHeading}
-        </h2>
+      <section class="donate" aria-labelledby="donate-heading">
+        <h2 id="donate-heading">{copy.donateHeading}</h2>
+        <p>{copy.donateBody}</p>
+
         <a class="button" href={DONATE_URL} target="_blank" rel="noopener">
           {copy.buttonLabel}
         </a>
-        <p class="short">{copy.donateShort}</p>
+
+        <p class="steps-intro">{copy.stepsIntro}</p>
+        <ol class="steps">
+          {copy.steps.map((step) => <li set:html={step} />)}
+        </ol>
+
+        <p class="fineprint">
+          {copy.checkLine}{' '}
+          {copy.phoneLabel} <a href={copy.phoneHref}>{copy.phone}</a>
+        </p>
       </section>
 
       <p class="pdf">
@@ -197,14 +182,6 @@ const canonical = new URL('/christina-harris/', Astro.site);
     </main>
 
     <style>
-      @font-face {
-        font-family: 'Mrs Saint Delafield';
-        src: url('/fonts/mrs-saint-delafield-name.woff2') format('woff2');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-
       :root {
         --paper: #f1efea;
         --ink-blue: #2f3f8f;
@@ -233,32 +210,6 @@ const canonical = new URL('/christina-harris/', Astro.site);
         max-width: 720px;
         margin-inline: auto;
         padding: 3rem 1.25rem 4.5rem;
-      }
-
-      .masthead {
-        text-align: center;
-        margin-bottom: 2.75rem;
-      }
-
-      h1 {
-        font-family: 'Mrs Saint Delafield', cursive;
-        font-weight: 400;
-        color: var(--ink-blue);
-        font-size: clamp(3.25rem, 13vw, 5.5rem);
-        line-height: 1.05;
-        margin: 0;
-        /* The script sits high in its em box; nudge the optical balance. */
-        padding-block: 0.1em 0.14em;
-      }
-
-      .dates {
-        color: var(--ink-blue);
-        font-size: clamp(1rem, 4.2vw, 1.2rem);
-        letter-spacing: 0.02em;
-        margin: 0.35rem 0 0;
-        padding-top: 1rem;
-        border-top: 1px solid var(--rule);
-        display: inline-block;
       }
 
       .donate {
@@ -331,18 +282,12 @@ const canonical = new URL('/christina-harris/', Astro.site);
         white-space: nowrap;
       }
 
-      .donate-repeat {
-        text-align: center;
-      }
-
-      .donate-repeat .short {
-        margin: 1rem 0 0;
-        font-size: 0.92rem;
-        color: var(--text-soft);
-      }
-
       figure.program {
         margin: 3rem 0;
+      }
+
+      figure.program.program-first {
+        margin-top: 0;
       }
 
       figure.program :global(img) {
